@@ -288,6 +288,7 @@
     <form
         action="{{ route('register.process') }}"
         method="POST"
+        enctype="multipart/form-data"
     >
 
         @csrf
@@ -346,6 +347,28 @@
                 value="{{ old('nik') }}"
                 required
             >
+
+        </div>
+
+        <!-- KTP -->
+
+        <div class="form-group">
+
+            <label for="file_ktp">
+                Upload KTP
+            </label>
+
+            <input
+                type="file"
+                name="file_ktp"
+                id="file_ktp"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+            >
+
+            <small>
+                Format: JPG, JPEG, PNG, atau PDF. Maksimal 2 MB.
+            </small>
 
         </div>
 

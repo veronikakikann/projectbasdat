@@ -25,6 +25,7 @@ class RegisterController extends Controller
         $request->validate([
             'role' => 'required|in:pemberi_kerja,pencari_kerja',
             'nik' => 'required|unique:pencari_kerja,nik|unique:pemberi_kerja,nik',
+            'file_ktp' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'nama' => 'required',
             'alamat' => 'required',
             'no_telpon' => 'required',
@@ -52,6 +53,9 @@ class RegisterController extends Controller
                 ->with('error', 'Email sudah terdaftar.');
         }
 
+        $fileKtp = $request->file('file_ktp');
+        $pathKtp = $fileKtp->store('ktp');
+
 
         // =========================
         // REGISTER PEMBERI KERJA
@@ -61,6 +65,7 @@ class RegisterController extends Controller
 
             DB::table('pemberi_kerja')->insert([
                 'nik' => $request->nik,
+                'file_ktp' => $pathKtp,
                 'nama' => $request->nama,
                 'alamat' => $request->alamat,
                 'no_telpon' => $request->no_telpon,
@@ -91,6 +96,7 @@ class RegisterController extends Controller
 
             DB::table('pencari_kerja')->insert([
                 'nik' => $request->nik,
+                'file_ktp' => $pathKtp,
                 'nama' => $request->nama,
                 'alamat' => $request->alamat,
                 'no_telpon' => $request->no_telpon,
