@@ -16,6 +16,14 @@ use App\Http\Controllers\BuktiPenyelesaianController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\NotifikasiController;
 
+use App\Http\Controllers\Pemberi\PekerjaanController as PemberiPekerjaanController;
+use App\Http\Controllers\Pemberi\LamaranController as PemberiLamaranController;
+use App\Http\Controllers\Pemberi\NotifikasiController as PemberiNotifikasiController;
+use App\Http\Controllers\Pemberi\DashboardController as PemberiDashboardController;
+use App\Http\Controllers\Pemberi\BuktiController as PemberiBuktiController;
+use App\Http\Controllers\Pemberi\RatingController as PemberiRatingController;
+use App\Http\Controllers\Pemberi\ProfilController as PemberiProfilController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -72,31 +80,8 @@ Route::post('/register', [RegisterController::class, 'register'])
 */
 
 Route::get('/admin/dashboard', function () {
-
-    if (session('role') !== 'admin') {
-        return redirect()->route('login');
-    }
-
     return view('dashboard.admin');
-
-})->name('admin.dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| DASHBOARD PEMBERI KERJA
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/pemberi/dashboard', function () {
-
-    if (session('role') !== 'pemberi_kerja') {
-        return redirect()->route('login');
-    }
-
-    return view('dashboard.pemberi');
-
-})->name('pemberi.dashboard');
+})->middleware('role:admin')->name('admin.dashboard');
 
 
 /*
@@ -106,15 +91,17 @@ Route::get('/pemberi/dashboard', function () {
 */
 
 Route::get('/pencari/dashboard', function () {
-
-    if (session('role') !== 'pencari_kerja') {
-        return redirect()->route('login');
-    }
-
     return view('dashboard.pencari');
+})->middleware('role:pencari_kerja')->name('pencari.dashboard');
 
-})->name('pencari.dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN ONLY (sementara - nanti diganti route verifikasi khusus admin)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('role:admin')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
@@ -163,6 +150,85 @@ Route::resource('keahlian', KeahlianController::class)
         'keahlian' => 'keahlian:id_keahlian'
     ]);
 
+
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| SEMENTARA: SEMUA ROLE YANG SUDAH LOGIN
+| TODO per tahap: tiap blok dipindah ke grup role masing-masing
+| (pemberi_kerja / pencari_kerja) dan difilter ke data milik user login.
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| PEMBERI KERJA  (hanya role pemberi_kerja, hanya data MILIKNYA)
+| Semua route di sini otomatis berawalan /pemberi dan bernama pemberi.*
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('role:pemberi_kerja')->prefix('pemberi')->name('pemberi.')->group(function () {
+
+    // 13. Dashboard
+    Route::get('dashboard', [PemberiDashboardController::class, 'index'])->name('dashboard');
+
+    // 14 + 17. Buat lowongan, Lowongan Saya, detail, edit, hapus
+    Route::resource('pekerjaan', PemberiPekerjaanController::class)
+        ->parameters(['pekerjaan' => 'pekerjaan:id_pekerjaan']);
+
+    // 16 + 20. Kapasitas & progress: mulai pekerjaan / tutup lowongan
+    Route::patch('pekerjaan/{pekerjaan:id_pekerjaan}/mulai', [PemberiPekerjaanController::class, 'mulai'])
+        ->name('pekerjaan.mulai');
+    Route::patch('pekerjaan/{pekerjaan:id_pekerjaan}/tutup', [PemberiPekerjaanController::class, 'tutup'])
+        ->name('pekerjaan.tutup');
+
+    // 15. Pelamar: per lowongan, semua lowongan, terima/tolak
+    Route::get('pekerjaan/{pekerjaan:id_pekerjaan}/pelamar', [PemberiLamaranController::class, 'perPekerjaan'])
+        ->name('pelamar.index');
+    Route::get('lamaran', [PemberiLamaranController::class, 'index'])
+        ->name('lamaran.index');
+    Route::patch('lamaran/{lamaran:id_lamaran}', [PemberiLamaranController::class, 'update'])
+        ->name('lamaran.update');
+
+    // 21. Bukti penyelesaian (upload -> pekerjaan selesai)
+    Route::get('pekerjaan/{pekerjaan:id_pekerjaan}/bukti', [PemberiBuktiController::class, 'create'])
+        ->name('bukti.create');
+    Route::post('pekerjaan/{pekerjaan:id_pekerjaan}/bukti', [PemberiBuktiController::class, 'store'])
+        ->name('bukti.store');
+    Route::get('pekerjaan/{pekerjaan:id_pekerjaan}/bukti/{jenis}', [PemberiBuktiController::class, 'file'])
+        ->whereIn('jenis', ['kerja', 'bayar'])
+        ->name('bukti.file');
+
+    // 22 + 23. Rating ke pekerja (edit maksimal 24 jam, tidak ada hapus)
+    Route::get('lamaran/{lamaran:id_lamaran}/rating', [PemberiRatingController::class, 'form'])
+        ->name('rating.form');
+    Route::post('lamaran/{lamaran:id_lamaran}/rating', [PemberiRatingController::class, 'store'])
+        ->name('rating.store');
+    Route::put('rating/{rating:id_rating}', [PemberiRatingController::class, 'update'])
+        ->name('rating.update');
+
+    // 18. Notifikasi
+    Route::get('notifikasi', [PemberiNotifikasiController::class, 'index'])
+        ->name('notifikasi.index');
+
+    // 19. Profil
+    Route::get('profil', [PemberiProfilController::class, 'show'])->name('profil.show');
+    Route::get('profil/edit', [PemberiProfilController::class, 'edit'])->name('profil.edit');
+    Route::put('profil', [PemberiProfilController::class, 'update'])->name('profil.update');
+    Route::get('profil/foto', [PemberiProfilController::class, 'foto'])->name('profil.foto');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| SEMENTARA (admin + pencari kerja) - dipindah/difilter di tahap pencari & admin
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('role:admin,pencari_kerja')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
@@ -227,6 +293,28 @@ Route::resource('lamaran', LamaranController::class)
 
 /*
 |--------------------------------------------------------------------------
+| CRUD NOTIFIKASI
+|--------------------------------------------------------------------------
+*/
+
+Route::resource('notifikasi', NotifikasiController::class)
+    ->parameters([
+        'notifikasi' => 'notifikasi:id_notifikasi'
+    ]);
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| SEMENTARA (semua role login) - bukti penyelesaian & rating
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('role:admin,pemberi_kerja,pencari_kerja')->group(function () {
+
+/*
+|--------------------------------------------------------------------------
 | CRUD BUKTI PENYELESAIAN
 |--------------------------------------------------------------------------
 */
@@ -249,13 +337,5 @@ Route::resource('rating', RatingController::class)
     ]);
 
 
-/*
-|--------------------------------------------------------------------------
-| CRUD NOTIFIKASI
-|--------------------------------------------------------------------------
-*/
 
-Route::resource('notifikasi', NotifikasiController::class)
-    ->parameters([
-        'notifikasi' => 'notifikasi:id_notifikasi'
-    ]);
+});
