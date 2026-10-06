@@ -12,6 +12,7 @@ class PemberiKerja extends Model
 
     protected $fillable = [
         'nik',
+        'file_ktp',
         'nama',
         'alamat',
         'no_telpon',
@@ -19,6 +20,7 @@ class PemberiKerja extends Model
         'password',
         'foto_profil',
         'status_verifikasi',
+        'status_akun',
         'id_admin',
         'tanggal_daftar',
     ];

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('skor');
             $table->string('kategori_komentar', 100)->nullable();
             $table->timestamp('tanggal_rating')->useCurrent();
+
+            $table->unique(['id_lamaran', 'arah_rating']); // 1 rating per arah per lamaran
         });
     }
 

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pemberikerja', function (Blueprint $table) {
+        Schema::create('pemberi_kerja', function (Blueprint $table) {
             $table->id('id_pemberi');
             $table->string('nik', 16)->unique();
             $table->string('nama', 100);
@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password', 255);
             $table->string('foto_profil', 255)->nullable();
             $table->enum('status_verifikasi', ['menunggu', 'terverifikasi', 'ditolak'])->default('menunggu');
+            $table->enum('status_akun', ['aktif', 'nonaktif'])->default('aktif'); // admin bisa menonaktifkan akun
             $table->foreignId('id_admin')->nullable()->constrained('admin', 'id_admin');
             $table->date('tanggal_daftar');
         });
@@ -25,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('pemberikerja');
+        Schema::dropIfExists('pemberi_kerja');
     }
 };
