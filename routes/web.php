@@ -105,16 +105,25 @@ Route::get('/pemberi/dashboard', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/pencari/dashboard', function () {
+Route::get('/pencari/dashboard', [PencariKerjaController::class, 'dashboard'])
+    ->name('pencari.dashboard');
 
-    if (session('role') !== 'pencari_kerja') {
-        return redirect()->route('login');
-    }
+    
+/*
+|--------------------------------------------------------------------------
+| PROFIL PENCARI KERJA
+|--------------------------------------------------------------------------
+*/
 
-    return view('dashboard.pencari');
+Route::get(
+    '/pencari/profil',
+    [PencariKerjaController::class, 'profil']
+)->name('pencari.profil');
 
-})->name('pencari.dashboard');
-
+Route::put(
+    '/pencari/profil',
+    [PencariKerjaController::class, 'updateProfil']
+)->name('pencari.profil.update');
 
 /*
 |--------------------------------------------------------------------------
@@ -200,6 +209,40 @@ Route::delete(
     [KeahlianPencariKerjaController::class, 'destroy']
 )->name('keahlian_pencari_kerja.destroy');
 
+
+/*
+|--------------------------------------------------------------------------
+| PENCARI KERJA - CARI PEKERJAAN
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/pencari/cari-pekerjaan',
+    [PekerjaanController::class, 'cari']
+)->name('pencari.cari-pekerjaan');
+
+
+/*
+|--------------------------------------------------------------------------
+| PENCARI KERJA - LAMAR PEKERJAAN
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/pencari/pekerjaan/{pekerjaan}/lamar',
+    [LamaranController::class, 'lamar']
+)->name('pencari.lamar');
+
+/*
+|--------------------------------------------------------------------------
+| PENCARI KERJA - LAMARAN SAYA
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/pencari/lamaran-saya',
+    [LamaranController::class, 'lamaranSaya']
+)->name('pencari.lamaran-saya');
 
 /*
 |--------------------------------------------------------------------------

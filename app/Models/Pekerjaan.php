@@ -10,9 +10,13 @@ class Pekerjaan extends Model
     protected $primaryKey = 'id_pekerjaan';
     public $timestamps = false;
 
+    
     protected $fillable = [
         'id_pemberi',
         'id_keahlian',
+        'nama_pekerjaan',
+        'jumlah_pekerja',
+        'persyaratan',
         'deskripsi',
         'upah',
         'lokasi',
