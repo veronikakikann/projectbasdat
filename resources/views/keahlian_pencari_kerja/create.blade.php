@@ -1,10 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+
 <head>
-    <title>Tambah Keahlian Pencari Kerja</title>
+    <meta charset="UTF-8">
+    <title>Ajukan Keahlian</title>
 </head>
 <body>
-    <h1>Tambah Keahlian Pencari Kerja</h1>
+    <h1>Ajukan Keahlian</h1>
+
+    <a href="{{ route('keahlian_pencari_kerja.index') }}">
+        ← Kembali ke Keahlian Saya
+    </a>
+
+    <hr>
+
+    @if(session('success'))
+        <p style="color: green;">
+            {{ session('success') }}
+        </p>
+    @endif
+
+    @if(session('error'))
+        <p style="color: red;">
+            {{ session('error') }}
+        </p>
+    @endif
 
     @if($errors->any())
         <div style="color: red;">
@@ -16,42 +36,58 @@
         </div>
     @endif
 
-    <form action="{{ route('keahlian_pencari_kerja.store') }}" method="POST">
+    <form
+        action="{{ route('keahlian_pencari_kerja.store') }}"
+        method="POST"
+        enctype="multipart/form-data"
+    >
         @csrf
 
-        <label>Pencari Kerja:</label><br>
-        <select name="id_pencari">
-            <option value="">-- Pilih --</option>
-            @foreach($pencariKerja as $pk)
-                <option value="{{ $pk->id_pencari }}" {{ old('id_pencari') == $pk->id_pencari ? 'selected' : '' }}>{{ $pk->nama }}</option>
-            @endforeach
-        </select><br><br>
+        <label>Judul Keahlian:</label><br>
 
-        <label>Keahlian:</label><br>
-        <select name="id_keahlian">
-            <option value="">-- Pilih --</option>
-            @foreach($keahlian as $k)
-                <option value="{{ $k->id_keahlian }}" {{ old('id_keahlian') == $k->id_keahlian ? 'selected' : '' }}>{{ $k->nama_keahlian }}</option>
-            @endforeach
-        </select><br><br>
+        <input
+            type="text"
+            name="judul_keahlian"
+            value="{{ old('judul_keahlian') }}"
+            placeholder="Contoh: Bisa memperbaiki AC"
+            required
+        >
 
-        <label>File Surat Rekomendasi:</label><br>
-        <input type="text" name="file_surat_rekomendasi" value="{{ old('file_surat_rekomendasi') }}" placeholder="nama_file.pdf"><br><br>
+        <br><br>
 
-        <label>Status Verifikasi Keahlian:</label><br>
-        <select name="status_verifikasi_keahlian">
-            <option value="menunggu" {{ old('status_verifikasi_keahlian') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-            <option value="terverifikasi" {{ old('status_verifikasi_keahlian') == 'terverifikasi' ? 'selected' : '' }}>Terverifikasi</option>
-            <option value="ditolak" {{ old('status_verifikasi_keahlian') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-        </select><br><br>
+        <label>Deskripsi Keahlian:</label><br>
 
-        <label>Tanggal Upload:</label><br>
-        <input type="date" name="tanggal_upload" value="{{ old('tanggal_upload') }}"><br><br>
+        <textarea
+            name="deskripsi_keahlian"
+            rows="5"
+            cols="50"
+            placeholder="Jelaskan kemampuan atau pengalaman yang kamu miliki..."
+            required
+        >{{ old('deskripsi_keahlian') }}</textarea>
 
-        <button type="submit">Simpan</button>
+        <br><br>
+
+        <label>Bukti / Surat Rekomendasi:</label><br>
+
+        <input
+            type="file"
+            name="file_surat_rekomendasi"
+            accept=".jpg,.jpeg,.png,.pdf"
+            required
+        >
+
+        <br>
+
+        <small>
+            Format: JPG, JPEG, PNG, atau PDF. Maksimal 2 MB.
+        </small>
+
+        <br><br>
+
+        <button type="submit">
+            Ajukan Keahlian
+        </button>
+
     </form>
-
-    <br>
-    <a href="{{ route('keahlian_pencari_kerja.index') }}">Kembali ke daftar</a>
 </body>
 </html>
