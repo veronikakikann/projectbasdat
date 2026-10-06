@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\PencariKerja;
+use App\Models\PemberiKerja;
+use App\Models\Keahlian;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -68,8 +72,22 @@ class AdminController extends Controller
 
     // Menghapus data admin
     public function destroy(Admin $admin)
-    {
-        $admin->delete();
-        return redirect()->route('admin.index')->with('success', 'Admin berhasil dihapus.');
+{
+    $admin->delete();
+
+    return redirect()->route('admin.index')
+        ->with('success', 'Admin berhasil dihapus.');
+}
+
+
+// DASHBOARD ADMIN
+public function dashboard()
+{
+    if (session('role') !== 'admin') {
+        return redirect()->route('login');
     }
+
+    return view('dashboard.admin');
+}
+
 }
