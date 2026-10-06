@@ -1,43 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+
 <head>
-    <title>Data Keahlian Pencari Kerja</title>
+    <meta charset="UTF-8">
+    <title>Keahlian Saya</title>
 </head>
+
 <body>
-    <h1>Data Keahlian Pencari Kerja</h1>
+
+    <h1>Keahlian Saya</h1>
+
+    <a href="{{ route('pencari.dashboard') }}">
+        ← Kembali ke Dashboard
+    </a>
+
+    <hr>
 
     @if(session('success'))
-        <p style="color: green;">{{ session('success') }}</p>
+        <p style="color: green;">
+            {{ session('success') }}
+        </p>
     @endif
 
-    <a href="{{ route('keahlian_pencari_kerja.create') }}">Tambah Data</a>
+    @if(session('error'))
+        <p style="color: red;">
+            {{ session('error') }}
+        </p>
+    @endif
 
-    <table border="1" cellpadding="8" style="border-collapse: collapse; margin-top: 10px;">
-        <tr>
-            <th>Pencari Kerja</th>
-            <th>Keahlian</th>
-            <th>File Rekomendasi</th>
-            <th>Status Verifikasi</th>
-            <th>Tanggal Upload</th>
-            <th>Aksi</th>
-        </tr>
-        @foreach($data as $d)
-        <tr>
-            <td>{{ $d->nama_pencari }}</td>
-            <td>{{ $d->nama_keahlian }}</td>
-            <td>{{ $d->file_surat_rekomendasi }}</td>
-            <td>{{ $d->status_verifikasi_keahlian }}</td>
-            <td>{{ $d->tanggal_upload }}</td>
-            <td>
-                <a href="{{ route('keahlian_pencari_kerja.edit', [$d->id_pencari, $d->id_keahlian]) }}">Edit</a>
-                <form action="{{ route('keahlian_pencari_kerja.destroy', [$d->id_pencari, $d->id_keahlian]) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin hapus?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit">Hapus</button>
-                </form>
-            </td>
-        </tr>
+
+    <h2>Keahlian Terverifikasi</h2>
+
+    @php
+        $keahlianTerverifikasi = $data->filter(function ($d) {
+            return $d->status_verifikasi_keahlian === 'terverifikasi'
+                && $d->id_keahlian !== null;
+        });
+    @endphp
+
+    @if($keahlianTerverifikasi->count() > 0)
+
+        @foreach($keahlianTerverifikasi as $d)
+
+            <div
+                style="
+                    border: 1px solid #ccc;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                "
+            >
+
+                <h3>
+                    {{ $d->nama_keahlian ?? $d->judul_keahlian }}
+                </h3>
+
+                <p>
+                    <strong>Deskripsi:</strong><br>
+                    {{ $d->deskripsi_keahlian ?? '-' }}
+                </p>
+
+                <p style="color: green;">
+                    ✓ Terverifikasi
+                </p>
+
+            </div>
+
         @endforeach
-    </table>
+
+    @else
+
+        <p>
+            Belum ada keahlian yang terverifikasi.
+        </p>
+
+    @endif
+
+
+    <hr>
+
+
+    <h2>Pengajuan Keahlian</h2>
+
+    @php
+        $pengajuanKeahlian = $data->filter(function ($d) {
+            return $d->status_verifikasi_keahlian !== 'terverifikasi';
+        });
+    @endphp
+
+    @if($pengajuanKeahlian->count() > 0)
+
+        @foreach($pengajuanKeahlian as $d)
+
+            <div
+                style="
+                    border: 1px solid #ccc;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                "
+            >
+
+                <h3>
+                    {{ $d->judul_keahlian }}
+                </h3>
+
+                <p>
+                    <strong>Deskripsi:</strong><br>
+                    {{ $d->deskripsi_keahlian ?? '-' }}
+                </p>
+
+                <p>
+                    <strong>Bukti:</strong>
+
+                    @if($d->file_surat_rekomendasi)
+                        <a
+                            href="{{ asset('storage/' . $d->file_surat_rekomendasi) }}"
+                            target="_blank"
+                        >
+                            Lihat Bukti
+                        </a>
+                    @else
+                        -
+                    @endif
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+
+                    @if($d->status_verifikasi_keahlian === 'menunggu')
+
+                        <span style="color: orange;">
+                            Menunggu Verifikasi
+                        </span>
+
+                    @elseif($d->status_verifikasi_keahlian === 'ditolak')
+
+                        <span style="color: red;">
+                            Ditolak
+                        </span>
+
+                    @endif
+                </p>
+
+                <p>
+                    <strong>Tanggal Pengajuan:</strong>
+                    {{ $d->tanggal_upload }}
+                </p>
+
+            </div>
+
+        @endforeach
+
+    @else
+
+        <p>
+            Belum ada pengajuan keahlian.
+        </p>
+
+    @endif
+
+
+    <hr>
+
+    <a href="{{ route('keahlian_pencari_kerja.create') }}">
+        + Ajukan Keahlian Baru
+    </a>
+
 </body>
+
 </html>

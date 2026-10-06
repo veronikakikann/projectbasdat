@@ -4,10 +4,100 @@ namespace App\Http\Controllers;
 
 use App\Models\PencariKerja;
 use App\Models\Admin;
+use App\Models\Pekerjaan;
+use App\Models\Lamaran;
 use Illuminate\Http\Request;
 
 class PencariKerjaController extends Controller
 {
+    public function dashboard()
+    {
+    $idPencari = session('user_id');
+
+    $pencari = PencariKerja::find($idPencari);
+
+    if (!$pencari) {
+        return redirect()
+            ->route('login')
+            ->with('error', 'Data Pencari Kerja tidak ditemukan.');
+    }
+
+    $jumlahPekerjaanTersedia = Pekerjaan::where(
+        'status_pekerjaan',
+        'tersedia'
+    )->count();
+
+    $lamaranTerakhir = Lamaran::with('pekerjaan')
+        ->where('id_pencari', $idPencari)
+        ->latest('tanggal_submit')
+        ->first();
+
+    return view(
+        'dashboard.pencari',
+        compact(
+            'pencari',
+            'jumlahPekerjaanTersedia',
+            'lamaranTerakhir'
+        )
+    );
+    }
+
+    public function profil()
+    {
+    $idPencari = session('user_id');
+
+    $pencari = PencariKerja::find($idPencari);
+
+    if (!$pencari) {
+        return redirect()
+            ->route('login')
+            ->with('error', 'Data Pencari Kerja tidak ditemukan.');
+    }
+
+    return view('pencari_kerja.profil', compact('pencari'));
+    }
+
+    public function updateProfil(Request $request)
+    {
+    $idPencari = session('user_id');
+
+    $pencari = PencariKerja::find($idPencari);
+
+    if (!$pencari) {
+        return redirect()
+            ->route('login')
+            ->with('error', 'Data Pencari Kerja tidak ditemukan.');
+    }
+
+    $request->validate([
+        'nik' => 'required|string|max:16|unique:pencari_kerja,nik,' . $pencari->id_pencari . ',id_pencari',
+        'nama' => 'required|string|max:100',
+        'alamat' => 'required|string',
+        'no_telpon' => 'required|string|max:20',
+        'email' => 'required|email|max:100|unique:pencari_kerja,email,' . $pencari->id_pencari . ',id_pencari',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
+    ]);
+
+    $pencari->nik = $request->nik;
+    $pencari->nama = $request->nama;
+    $pencari->alamat = $request->alamat;
+    $pencari->no_telpon = $request->no_telpon;
+    $pencari->email = $request->email;
+    $pencari->latitude = $request->latitude;
+    $pencari->longitude = $request->longitude;
+
+    $pencari->save();
+
+    session([
+        'user_name' => $pencari->nama,
+    ]);
+
+    return redirect()
+        ->route('pencari.profil')
+        ->with('success', 'Profil berhasil diperbarui.');
+    }
+
     public function index()
     {
         $pencariKerja = PencariKerja::with('admin')->get();

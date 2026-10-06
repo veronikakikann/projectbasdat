@@ -10,15 +10,18 @@ return new class extends Migration
     {
         Schema::create('pekerjaan', function (Blueprint $table) {
             $table->id('id_pekerjaan');
-            $table->foreignId('id_pemberi')->constrained('pemberikerja', 'id_pemberi');
+            $table->foreignId('id_pemberi')->constrained('pemberi_kerja', 'id_pemberi');
             $table->foreignId('id_keahlian')->constrained('keahlian', 'id_keahlian');
+            $table->string('nama_pekerjaan', 150);
             $table->text('deskripsi');
             $table->decimal('upah', 12, 2);
             $table->text('lokasi');
-            $table->decimal('latitude', 9, 6);
-            $table->decimal('longitude', 9, 6);
+            $table->decimal('latitude', 9, 6)->nullable();   // opsional, dipakai nanti untuk filter radius
+            $table->decimal('longitude', 9, 6)->nullable();
             $table->date('tanggal_pengerjaan');
-            $table->enum('status_pekerjaan', ['tersedia', 'sedang_dikerjakan', 'selesai'])->default('tersedia');
+            $table->unsignedSmallInteger('jumlah_pekerja')->default(1);
+            $table->text('persyaratan')->nullable();
+            $table->enum('status_pekerjaan', ['tersedia', 'penuh', 'sedang_dikerjakan', 'selesai', 'ditutup'])->default('tersedia');
             $table->timestamp('tanggal_posting')->useCurrent();
         });
     }

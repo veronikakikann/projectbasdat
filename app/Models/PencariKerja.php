@@ -12,6 +12,7 @@ class PencariKerja extends Model
 
     protected $fillable = [
         'nik',
+        'file_ktp',
         'nama',
         'alamat',
         'no_telpon',
@@ -22,6 +23,7 @@ class PencariKerja extends Model
         'longitude',
         'file_surat_pengantar',
         'status_verifikasi',
+        'status_akun',
         'id_admin',
         'tanggal_daftar',
     ];
