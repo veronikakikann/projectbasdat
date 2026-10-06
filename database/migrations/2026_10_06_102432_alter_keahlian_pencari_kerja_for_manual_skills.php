@@ -8,36 +8,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Buat index terpisah untuk id_pencari
-        // karena foreign key id_pencari membutuhkannya
-        // setelah primary key lama dilepas.
+        // 1. Buat index terpisah
         Schema::table('keahlian_pencari_kerja', function (Blueprint $table) {
             $table->index('id_pencari', 'idx_kp_pencari');
         });
 
-        // Lepas struktur primary key lama dan foreign key keahlian
+        // 2. Lepas struktur primary key lama dan foreign key keahlian
         Schema::table('keahlian_pencari_kerja', function (Blueprint $table) {
-            $table->dropForeign('fk_kp_keahlian');
+            // Gunakan array ['id_keahlian'] agar Laravel mencari nama defaultnya secara otomatis
+            $table->dropForeign(['id_keahlian']);
             $table->dropPrimary();
 
-            $table->id('id_keahlian_pencari')
-                ->first();
+            $table->id('id_keahlian_pencari')->first();
 
-            $table->string('judul_keahlian', 255)
-                ->after('id_pencari');
+            $table->string('judul_keahlian', 255)->after('id_pencari');
 
-            $table->text('deskripsi_keahlian')
-                ->nullable()
-                ->after('judul_keahlian');
+            $table->text('deskripsi_keahlian')->nullable()->after('judul_keahlian');
 
-            $table->integer('id_keahlian')
-                ->nullable()
-                ->change();
+            // Ubah id_keahlian agar bisa NULL
+            // Pastikan tipe datanya adalah unsignedBigInteger agar cocok dengan foreignId
+            $table->unsignedBigInteger('id_keahlian')->nullable()->change();
         });
 
-        // Pasang kembali foreign key id_keahlian,
-        // tetapi sekarang id_keahlian boleh NULL
-        // sampai Admin menentukan kategorinya.
+        // 3. Pasang kembali foreign key dengan nama custom 'fk_kp_keahlian'
         Schema::table('keahlian_pencari_kerja', function (Blueprint $table) {
             $table->foreign('id_keahlian', 'fk_kp_keahlian')
                 ->references('id_keahlian')
@@ -49,7 +42,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Lepas foreign key id_keahlian
+        // 1. Lepas foreign key id_keahlian yang bernama fk_kp_keahlian
         Schema::table('keahlian_pencari_kerja', function (Blueprint $table) {
             $table->dropForeign('fk_kp_keahlian');
             $table->dropPrimary();
@@ -60,16 +53,14 @@ return new class extends Migration
                 'deskripsi_keahlian',
             ]);
 
-            $table->integer('id_keahlian')
-                ->nullable(false)
-                ->change();
+            $table->unsignedBigInteger('id_keahlian')->nullable(false)->change();
 
             $table->primary(['id_pencari', 'id_keahlian']);
         });
 
-        // Pasang kembali foreign key id_keahlian
+        // 2. Pasang kembali foreign key id_keahlian tanpa nama custom (kembali ke default)
         Schema::table('keahlian_pencari_kerja', function (Blueprint $table) {
-            $table->foreign('id_keahlian', 'fk_kp_keahlian')
+            $table->foreign('id_keahlian')
                 ->references('id_keahlian')
                 ->on('keahlian')
                 ->onDelete('cascade')

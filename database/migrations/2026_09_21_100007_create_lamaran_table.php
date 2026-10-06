@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('lamaran', function (Blueprint $table) {
             $table->id('id_lamaran');
             $table->foreignId('id_pekerjaan')->constrained('pekerjaan', 'id_pekerjaan');
-            $table->foreignId('id_pencari')->constrained('pencarikerja', 'id_pencari');
+            $table->foreignId('id_pencari')->constrained('pencari_kerja', 'id_pencari');
             $table->enum('status_lamaran', ['menunggu', 'diterima', 'ditolak'])->default('menunggu');
             $table->timestamp('tanggal_submit')->useCurrent();
 
