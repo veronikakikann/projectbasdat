@@ -16,7 +16,7 @@
             --color-primary-dark: #3D91C7;  /* biru lebih gelap / hover */
 
             --color-accent: #F5FF00;        /* kuning neon - CTA/highlight */
-            --color-secondary: #F39AC0;     /* pink - aksen/dekorasi */
+            --color-secondary: #FF8A5B;     /* coral - aksen/dekorasi */
 
             --color-ink: #171717;           /* teks utama */
             --color-ink-soft: #5B6472;      /* teks sekunder */
