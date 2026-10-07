@@ -53,6 +53,11 @@ class RegisterController extends Controller
                 ->with('error', 'Email sudah terdaftar.');
         }
 
+
+        // =========================
+        // UPLOAD KTP
+        // =========================
+
         $fileKtp = $request->file('file_ktp');
         $pathKtp = $fileKtp->store('ktp');
 
@@ -72,10 +77,13 @@ class RegisterController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
 
+                // Akun baru menunggu verifikasi admin
                 'status_verifikasi' => 'menunggu',
 
-                'id_admin' => null,
+                // Akun belum dinonaktifkan
+                'status_akun' => 'aktif',
 
+                'id_admin' => null,
                 'tanggal_daftar' => now(),
             ]);
 
@@ -83,7 +91,7 @@ class RegisterController extends Controller
                 ->route('login')
                 ->with(
                     'success',
-                    'Registrasi berhasil! Silakan login setelah akun diverifikasi admin.'
+                    'Registrasi berhasil! Silakan tunggu verifikasi admin sebelum login.'
                 );
         }
 
@@ -108,10 +116,13 @@ class RegisterController extends Controller
                 'longitude' => null,
                 'file_surat_pengantar' => null,
 
+                // Akun baru menunggu verifikasi admin
                 'status_verifikasi' => 'menunggu',
 
-                'id_admin' => null,
+                // Akun belum dinonaktifkan
+                'status_akun' => 'aktif',
 
+                'id_admin' => null,
                 'tanggal_daftar' => now(),
             ]);
 
@@ -119,10 +130,14 @@ class RegisterController extends Controller
                 ->route('login')
                 ->with(
                     'success',
-                    'Registrasi berhasil! Silakan login setelah akun diverifikasi admin.'
+                    'Registrasi berhasil! Silakan tunggu verifikasi admin sebelum login.'
                 );
         }
 
+
+        // =========================
+        // REGISTER GAGAL
+        // =========================
 
         return back()
             ->withInput()
