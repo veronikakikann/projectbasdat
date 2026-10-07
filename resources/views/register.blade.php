@@ -1,527 +1,266 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Daftar - Bursa Kerja Harian</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar | Teman Kerja</title>
+    
+    <!-- Font yang sama dengan Landing Page -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-
-        * {
-            box-sizing: border-box;
+        :root {
+            --color-primary: #55B4EA;
+            --color-accent: #F5FF00;
+            --color-surface: #FFFFFF;
+            --color-ink: #171717;
+            --color-ink-soft: #5B6472;
+            --color-border: #E5E7EB;
+            --font-heading: 'Manrope', sans-serif;
+            --font-body: 'Inter', sans-serif;
         }
-
 
         body {
-
             margin: 0;
-
-            min-height: 100vh;
-
+            padding: 40px 0; /* Memberi ruang di atas dan bawah agar kartu tidak mentok layar */
+            font-family: var(--font-body);
+            background-color: var(--color-primary);
             display: flex;
-
-            justify-content: center;
-
             align-items: center;
-
-            font-family: Arial, sans-serif;
-
-            background: linear-gradient(
-                135deg,
-                #2c3e50,
-                #3498db
-            );
-
-            padding: 40px 20px;
-
+            justify-content: center;
+            min-height: 100vh;
         }
 
-
-        .register-box {
-
-            width: 520px;
-
-            background: white;
-
-            padding: 40px;
-
-            border-radius: 18px;
-
-            box-shadow:
-                0 15px 40px rgba(0, 0, 0, 0.2);
-
+        /* KARTU REGISTER PUTIH */
+        .register-card {
+            background-color: var(--color-surface);
+            width: 100%;
+            max-width: 480px; /* Sedikit lebih lebar dari login karena formnya banyak */
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            margin: 20px;
         }
 
-
-        .title {
-
+        /* HEADER */
+        .register-header {
             text-align: center;
-
-            margin-bottom: 30px;
-
+            margin-bottom: 35px;
         }
 
-
-        .title h1 {
-
-            margin: 0;
-
-            color: #2c3e50;
-
-            font-size: 30px;
-
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--color-ink);
+            margin-bottom: 10px;
         }
 
-
-        .title p {
-
-            color: #777;
-
-            margin-top: 10px;
-
+        .logo span {
+            color: var(--color-accent);
         }
 
+        .subtitle {
+            color: var(--color-ink-soft);
+            font-size: 1rem;
+        }
 
+        .subtitle strong {
+            color: var(--color-ink);
+        }
+
+        /* FORM GRUP */
         .form-group {
-
-            margin-bottom: 18px;
-
+            margin-bottom: 22px;
         }
 
-
-        label {
-
+        .form-group label {
             display: block;
-
+            font-weight: 700;
+            color: var(--color-ink);
             margin-bottom: 8px;
-
-            font-weight: bold;
-
-            color: #333;
-
+            font-size: 0.95rem;
         }
 
-
-        input,
-        select,
-        textarea {
-
+        /* STYLE INPUT STANDARD */
+        .form-control {
             width: 100%;
-
-            padding: 12px;
-
-            border: 1px solid #ddd;
-
-            border-radius: 9px;
-
-            font-size: 15px;
-
+            padding: 14px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            box-sizing: border-box;
+            color: var(--color-ink);
+            transition: border-color 0.3s ease;
         }
 
-
-        textarea {
-
-            min-height: 80px;
-
-            resize: vertical;
-
-        }
-
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-
+        .form-control:focus {
             outline: none;
-
-            border-color: #3498db;
-
+            border-color: var(--color-primary);
         }
 
+        .form-control::placeholder {
+            color: #A0AEC0;
+        }
 
-        .btn-register {
+        /* STYLE KHUSUS SELECT (Dropdown) */
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%235B6472%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px top 50%;
+            background-size: 12px auto;
+        }
 
-            width: 100%;
-
-            padding: 14px;
-
-            border: none;
-
-            border-radius: 9px;
-
-            background: #5b9bd5;
-
-            color: white;
-
-            font-size: 17px;
-
-            font-weight: bold;
-
+        /* STYLE KHUSUS INPUT FILE (KTP) */
+        input[type="file"] {
+            padding: 10px 16px;
+            background-color: #FAFAFA;
+            color: var(--color-ink-soft);
+            font-size: 0.95rem;
+        }
+        
+        /* Memodifikasi tombol 'Choose File' bawaan browser */
+        input[type="file"]::file-selector-button {
+            border: 1px solid var(--color-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: var(--color-surface);
+            color: var(--color-ink);
             cursor: pointer;
-
-            margin-top: 5px;
-
+            font-weight: 600;
+            margin-right: 15px;
+            transition: background-color 0.2s;
         }
 
+        input[type="file"]::file-selector-button:hover {
+            background-color: #F3F4F6;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: var(--color-ink-soft);
+        }
+
+        /* TOMBOL DAFTAR */
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--color-accent);
+            color: var(--color-ink);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 25px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
 
         .btn-register:hover {
-
-            background: #4285c5;
-
+            filter: brightness(0.95);
+            transform: translateY(-2px);
         }
 
-
-        .login-link {
-
+        /* TEKS BAWAH */
+        .footer-text {
             text-align: center;
-
-            margin-top: 22px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid #eee;
-
+            color: var(--color-ink-soft);
+            font-size: 0.95rem;
         }
 
-
-        .login-link p {
-
-            color: #777;
-
-            margin: 0;
-
-        }
-
-
-        .login-link a {
-
-            color: #3498db;
-
-            font-weight: bold;
-
+        .footer-text a {
+            color: var(--color-ink);
+            font-weight: 700;
             text-decoration: none;
-
         }
 
-
-        .login-link a:hover {
-
+        .footer-text a:hover {
             text-decoration: underline;
-
         }
-
-
-        .error {
-
-            background: #f8d7da;
-
-            color: #721c24;
-
-            padding: 12px 15px;
-
-            border-radius: 8px;
-
-            margin-bottom: 20px;
-
-        }
-
     </style>
-
 </head>
-
-
 <body>
 
+    <div class="register-card">
+        
+        <!-- HEADER -->
+        <div class="register-header">
+            <div class="logo">Teman<span>Kerja</span></div>
+            <div class="subtitle">Buat akun sebagai pengguna <strong>Teman Kerja</strong></div>
+        </div>
 
-<div class="register-box">
+        <!-- FORM REGISTER -->
+        <!-- Pastikan enctype="multipart/form-data" ada karena kita menerima file upload (KTP) -->
+        <form action="/register-proses" method="POST" enctype="multipart/form-data">
+            <!-- @csrf -->
+            
+            <div class="form-group">
+                <label for="role">Daftar Sebagai</label>
+                <select name="role" id="role" class="form-control" required>
+                    <option value="" disabled selected>Pilih peran kamu...</option>
+                    <option value="pencari_kerja">Pencari Kerja</option>
+                    <option value="pemberi_kerja">Pemberi Kerja</option>
+                    <!-- HANYA 2 OPSI, TIDAK ADA ADMIN -->
+                </select>
+            </div>
 
+            <div class="form-group">
+                <label for="nik">NIK</label>
+                <input type="text" name="nik" id="nik" class="form-control" placeholder="Masukkan NIK (16 digit)" required pattern="\d{16}" title="NIK harus terdiri dari 16 angka">
+            </div>
 
-    <div class="title">
+            <div class="form-group">
+                <label for="ktp">Unggah KTP</label>
+                <input type="file" name="ktp" id="ktp" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
+                <span class="help-text">Format: JPG, JPEG, PNG, atau PDF. Maksimal 2MB.</span>
+            </div>
 
-        <h1>BUAT AKUN</h1>
+            <div class="form-group">
+                <label for="nama">Nama Lengkap</label>
+                <input type="text" name="nama" id="nama" class="form-control" placeholder="Masukkan Nama Lengkap Sesuai KTP" required>
+            </div>
 
-        <p>Daftar sebagai pengguna Bursa Kerja Harian</p>
+            <div class="form-group">
+                <label for="alamat">Alamat</label>
+                <input type="text" name="alamat" id="alamat" class="form-control" placeholder="Masukkan Alamat Sesuai KTP" required>
+            </div>
 
+            <div class="form-group">
+                <label for="telepon">Nomor Telepon</label>
+                <input type="tel" name="telepon" id="telepon" class="form-control" placeholder="Masukkan Nomor Telepon Aktif" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="Masukkan Alamat Email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Kata Sandi</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 Karakter" required minlength="8">
+            </div>
+
+            <div class="form-group">
+                <label for="password_confirmation">Konfirmasi Kata Sandi</label>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Masukkan Ulang Kata Sandi" required>
+            </div>
+
+            <button type="submit" class="btn-register">DAFTAR</button>
+        </form>
+
+        <!-- FOOTER -->
+        <div class="footer-text">
+            Sudah punya akun? <a href="/login">Masuk</a>
+        </div>
+        
     </div>
-
-
-    {{-- Error --}}
-
-    @if(session('error'))
-
-        <div class="error">
-
-            {{ session('error') }}
-
-        </div>
-
-    @endif
-
-
-    {{-- Validation error --}}
-
-    @if($errors->any())
-
-        <div class="error">
-
-            @foreach($errors->all() as $error)
-
-                <div>
-                    {{ $error }}
-                </div>
-
-            @endforeach
-
-        </div>
-
-    @endif
-
-
-    <form
-        action="{{ route('register.process') }}"
-        method="POST"
-        enctype="multipart/form-data"
-    >
-
-        @csrf
-
-
-        <!-- ROLE -->
-
-        <div class="form-group">
-
-            <label for="role">
-                Daftar sebagai
-            </label>
-
-            <select
-                name="role"
-                id="role"
-                required
-            >
-
-                <option value="">
-                    -- Pilih Role --
-                </option>
-
-                <option
-                    value="pemberi_kerja"
-                    {{ old('role') == 'pemberi_kerja' ? 'selected' : '' }}
-                >
-                    Pemberi Kerja
-                </option>
-
-                <option
-                    value="pencari_kerja"
-                    {{ old('role') == 'pencari_kerja' ? 'selected' : '' }}
-                >
-                    Pencari Kerja
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- NIK -->
-
-        <div class="form-group">
-
-            <label for="nik">
-                NIK
-            </label>
-
-            <input
-                type="text"
-                name="nik"
-                id="nik"
-                placeholder="Masukkan NIK"
-                value="{{ old('nik') }}"
-                required
-            >
-
-        </div>
-
-        <!-- KTP -->
-
-        <div class="form-group">
-
-            <label for="file_ktp">
-                Upload KTP
-            </label>
-
-            <input
-                type="file"
-                name="file_ktp"
-                id="file_ktp"
-                accept=".jpg,.jpeg,.png,.pdf"
-                required
-            >
-
-            <small>
-                Format: JPG, JPEG, PNG, atau PDF. Maksimal 2 MB.
-            </small>
-
-        </div>
-
-
-        <!-- NAMA -->
-
-        <div class="form-group">
-
-            <label for="nama">
-                Nama Lengkap
-            </label>
-
-            <input
-                type="text"
-                name="nama"
-                id="nama"
-                placeholder="Masukkan nama lengkap"
-                value="{{ old('nama') }}"
-                required
-            >
-
-        </div>
-
-
-        <!-- ALAMAT -->
-
-        <div class="form-group">
-
-            <label for="alamat">
-                Alamat
-            </label>
-
-            <textarea
-                name="alamat"
-                id="alamat"
-                placeholder="Masukkan alamat lengkap"
-                required
-            >{{ old('alamat') }}</textarea>
-
-        </div>
-
-
-        <!-- NO TELEPON -->
-
-        <div class="form-group">
-
-            <label for="no_telpon">
-                Nomor Telepon
-            </label>
-
-            <input
-                type="text"
-                name="no_telpon"
-                id="no_telpon"
-                placeholder="Masukkan nomor telepon"
-                value="{{ old('no_telpon') }}"
-                required
-            >
-
-        </div>
-
-
-        <!-- EMAIL -->
-
-        <div class="form-group">
-
-            <label for="email">
-                Email
-            </label>
-
-            <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Masukkan email"
-                value="{{ old('email') }}"
-                required
-            >
-
-        </div>
-
-
-        <!-- PASSWORD -->
-
-        <div class="form-group">
-
-            <label for="password">
-                Password
-            </label>
-
-            <input
-                type="password"
-                name="password"
-                id="password"
-                placeholder="Minimal 6 karakter"
-                required
-            >
-
-        </div>
-
-
-        <!-- KONFIRMASI PASSWORD -->
-
-        <div class="form-group">
-
-            <label for="password_confirmation">
-                Konfirmasi Password
-            </label>
-
-            <input
-                type="password"
-                name="password_confirmation"
-                id="password_confirmation"
-                placeholder="Masukkan ulang password"
-                required
-            >
-
-        </div>
-
-
-        <!-- BUTTON -->
-
-        <button
-            type="submit"
-            class="btn-register"
-        >
-            DAFTAR
-        </button>
-
-
-    </form>
-
-
-    <!-- LOGIN -->
-
-    <div class="login-link">
-
-        <p>
-
-            Sudah punya akun?
-
-            <a href="{{ route('login') }}">
-                Login di sini
-            </a>
-
-        </p>
-
-    </div>
-
-
-</div>
-
 
 </body>
-
 </html>
