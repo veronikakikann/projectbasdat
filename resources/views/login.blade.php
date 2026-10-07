@@ -57,7 +57,7 @@
         .subtitle {
             color: var(--color-ink-soft);
             font-size: 1rem;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
         }
 
         .form-group {
@@ -145,8 +145,33 @@
         <div class="logo">Teman<span>Kerja</span></div>
         <div class="subtitle">Selamat datang kembali! Silakan masuk ke akunmu.</div>
 
-        <form action="/login-proses" method="POST">
-            <!-- @csrf -->
+        <!-- KOTAK PESAN SUCCESS (Berhasil Daftar) -->
+        @if (session('success'))
+            <div style="background-color: #D1FAE5; color: #065F46; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #34D399; text-align: left;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- KOTAK PESAN ERROR CUSTOM (Contoh: Akun belum diverifikasi) -->
+        @if (session('error'))
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #F87171; text-align: left;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <!-- KOTAK PESAN ERROR VALIDASI (Contoh: Email / Password kosong) -->
+        @if ($errors->any())
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; border: 1px solid #F87171;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="/login" method="POST">
+            @csrf
             
             <div class="form-group">
                 <label for="role">Masuk Sebagai</label>
@@ -154,7 +179,6 @@
                     <option value="" disabled selected>Pilih peran kamu...</option>
                     <option value="pencari_kerja">Pencari Kerja</option>
                     <option value="pemberi_kerja">Pemberi Kerja</option>
-                    <!-- TAMBAHAN OPSI ADMIN DI SINI -->
                     <option value="admin">Admin</option>
                 </select>
             </div>

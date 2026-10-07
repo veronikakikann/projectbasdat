@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar | Teman Kerja</title>
     
-    <!-- Font yang sama dengan Landing Page -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -22,7 +21,7 @@
 
         body {
             margin: 0;
-            padding: 40px 0; /* Memberi ruang di atas dan bawah agar kartu tidak mentok layar */
+            padding: 40px 0;
             font-family: var(--font-body);
             background-color: var(--color-primary);
             display: flex;
@@ -31,11 +30,10 @@
             min-height: 100vh;
         }
 
-        /* KARTU REGISTER PUTIH */
         .register-card {
             background-color: var(--color-surface);
             width: 100%;
-            max-width: 480px; /* Sedikit lebih lebar dari login karena formnya banyak */
+            max-width: 480px;
             padding: 50px 40px;
             border-radius: 24px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -43,10 +41,9 @@
             margin: 20px;
         }
 
-        /* HEADER */
         .register-header {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
         }
 
         .logo {
@@ -70,7 +67,6 @@
             color: var(--color-ink);
         }
 
-        /* FORM GRUP */
         .form-group {
             margin-bottom: 22px;
         }
@@ -83,7 +79,6 @@
             font-size: 0.95rem;
         }
 
-        /* STYLE INPUT STANDARD */
         .form-control {
             width: 100%;
             padding: 14px 16px;
@@ -105,7 +100,6 @@
             color: #A0AEC0;
         }
 
-        /* STYLE KHUSUS SELECT (Dropdown) */
         select.form-control {
             appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%235B6472%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -114,7 +108,6 @@
             background-size: 12px auto;
         }
 
-        /* STYLE KHUSUS INPUT FILE (KTP) */
         input[type="file"] {
             padding: 10px 16px;
             background-color: #FAFAFA;
@@ -122,7 +115,6 @@
             font-size: 0.95rem;
         }
         
-        /* Memodifikasi tombol 'Choose File' bawaan browser */
         input[type="file"]::file-selector-button {
             border: 1px solid var(--color-border);
             padding: 6px 12px;
@@ -146,7 +138,6 @@
             color: var(--color-ink-soft);
         }
 
-        /* TOMBOL DAFTAR */
         .btn-register {
             width: 100%;
             padding: 16px;
@@ -168,7 +159,6 @@
             transform: translateY(-2px);
         }
 
-        /* TEKS BAWAH */
         .footer-text {
             text-align: center;
             color: var(--color-ink-soft);
@@ -190,16 +180,38 @@
 
     <div class="register-card">
         
-        <!-- HEADER -->
         <div class="register-header">
             <div class="logo">Teman<span>Kerja</span></div>
             <div class="subtitle">Buat akun sebagai pengguna <strong>Teman Kerja</strong></div>
         </div>
 
-        <!-- FORM REGISTER -->
-        <!-- Pastikan enctype="multipart/form-data" ada karena kita menerima file upload (KTP) -->
-        <form action="/register-proses" method="POST" enctype="multipart/form-data">
-            <!-- @csrf -->
+        <!-- KOTAK PESAN SUCCESS -->
+        @if (session('success'))
+            <div style="background-color: #D1FAE5; color: #065F46; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #34D399; text-align: left;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- KOTAK PESAN ERROR CUSTOM (Contoh: Email sudah terdaftar) -->
+        @if (session('error'))
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #F87171; text-align: left;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <!-- KOTAK PESAN ERROR VALIDASI -->
+        @if ($errors->any())
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; border: 1px solid #F87171;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="/register" method="POST" enctype="multipart/form-data">
+            @csrf
             
             <div class="form-group">
                 <label for="role">Daftar Sebagai</label>
@@ -207,55 +219,54 @@
                     <option value="" disabled selected>Pilih peran kamu...</option>
                     <option value="pencari_kerja">Pencari Kerja</option>
                     <option value="pemberi_kerja">Pemberi Kerja</option>
-                    <!-- HANYA 2 OPSI, TIDAK ADA ADMIN -->
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="nik">NIK</label>
-                <input type="text" name="nik" id="nik" class="form-control" placeholder="Masukkan NIK (16 digit)" required pattern="\d{16}" title="NIK harus terdiri dari 16 angka">
+                <!-- pastikan memakai value="{{ old('nik') }}" (opsional) agar jika error ketikannya tidak hilang -->
+                <input type="text" name="nik" id="nik" class="form-control" placeholder="Masukkan NIK (16 digit)" required pattern="\d{16}" title="NIK harus terdiri dari 16 angka" value="{{ old('nik') }}">
             </div>
 
             <div class="form-group">
                 <label for="ktp">Unggah KTP</label>
-                <input type="file" name="ktp" id="ktp" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
+                <input type="file" name="file_ktp" id="ktp" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
                 <span class="help-text">Format: JPG, JPEG, PNG, atau PDF. Maksimal 2MB.</span>
             </div>
 
             <div class="form-group">
                 <label for="nama">Nama Lengkap</label>
-                <input type="text" name="nama" id="nama" class="form-control" placeholder="Masukkan Nama Lengkap Sesuai KTP" required>
+                <input type="text" name="nama" id="nama" class="form-control" placeholder="Masukkan Nama Lengkap Sesuai KTP" required value="{{ old('nama') }}">
             </div>
 
             <div class="form-group">
                 <label for="alamat">Alamat</label>
-                <input type="text" name="alamat" id="alamat" class="form-control" placeholder="Masukkan Alamat Sesuai KTP" required>
+                <input type="text" name="alamat" id="alamat" class="form-control" placeholder="Masukkan Alamat Sesuai KTP" required value="{{ old('alamat') }}">
             </div>
 
             <div class="form-group">
                 <label for="telepon">Nomor Telepon</label>
-                <input type="tel" name="telepon" id="telepon" class="form-control" placeholder="Masukkan Nomor Telepon Aktif" required>
+                <input type="tel" name="no_telpon" id="telepon" class="form-control" placeholder="Masukkan Nomor Telepon Aktif" required value="{{ old('no_telpon') }}">
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="Masukkan Alamat Email" required>
+                <input type="email" name="email" id="email" class="form-control" placeholder="Masukkan Alamat Email" required value="{{ old('email') }}">
             </div>
 
             <div class="form-group">
                 <label for="password">Kata Sandi</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 Karakter" required minlength="8">
+                <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 Karakter" required minlength="6">
             </div>
 
             <div class="form-group">
                 <label for="password_confirmation">Konfirmasi Kata Sandi</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Masukkan Ulang Kata Sandi" required>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Masukkan Ulang Kata Sandi" required minlength="6">
             </div>
 
             <button type="submit" class="btn-register">DAFTAR</button>
         </form>
 
-        <!-- FOOTER -->
         <div class="footer-text">
             Sudah punya akun? <a href="/login">Masuk</a>
         </div>
