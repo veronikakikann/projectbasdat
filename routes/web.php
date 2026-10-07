@@ -79,10 +79,10 @@ Route::post('/register', [RegisterController::class, 'register'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/admin/dashboard', function () {
-    return view('dashboard.admin');
-})->middleware('role:admin')->name('admin.dashboard');
-
+Route::get(
+    '/admin/dashboard',
+    [AdminController::class, 'dashboard']
+)->name('admin.dashboard');
 
 /*
 |--------------------------------------------------------------------------

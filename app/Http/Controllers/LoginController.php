@@ -8,13 +8,18 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    // Menampilkan halaman login
+    // =========================
+    // HALAMAN LOGIN
+    // =========================
     public function showLogin()
     {
         return view('login');
     }
 
-    // Proses login
+
+    // =========================
+    // PROSES LOGIN
+    // =========================
     public function login(Request $request)
     {
         $request->validate([
@@ -27,10 +32,11 @@ class LoginController extends Controller
         $email = $request->email;
         $password = $request->password;
 
+
         // =========================
         // LOGIN ADMIN
         // =========================
-        if ($role == 'admin') {
+        if ($role === 'admin') {
 
             $user = DB::table('admin')
                 ->where('email', $email)
@@ -49,10 +55,11 @@ class LoginController extends Controller
             }
         }
 
+
         // =========================
         // LOGIN PEMBERI KERJA
         // =========================
-        if ($role == 'pemberi_kerja') {
+        if ($role === 'pemberi_kerja') {
 
             $user = DB::table('pemberi_kerja')
                 ->where('email', $email)
@@ -60,21 +67,56 @@ class LoginController extends Controller
 
             if ($user && Hash::check($password, $user->password)) {
 
-                session([
-                    'login' => true,
-                    'role' => 'pemberi_kerja',
-                    'user_id' => $user->id_pemberi,
-                    'user_name' => $user->nama,
-                ]);
+                // Belum diverifikasi admin
+                if ($user->status_verifikasi === 'menunggu') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu masih menunggu verifikasi admin.'
+                        );
+                }
 
-                return redirect()->route('pemberi.dashboard');
+                // Ditolak admin
+                if ($user->status_verifikasi === 'ditolak') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu ditolak oleh admin.'
+                        );
+                }
+
+                // Akun dinonaktifkan admin
+                if ($user->status_akun === 'nonaktif') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu telah dinonaktifkan oleh admin.'
+                        );
+                }
+
+                // Login berhasil
+                if ($user->status_verifikasi === 'terverifikasi') {
+
+                    session([
+                        'login' => true,
+                        'role' => 'pemberi_kerja',
+                        'user_id' => $user->id_pemberi,
+                        'user_name' => $user->nama,
+                    ]);
+
+                    return redirect()->route('pemberi.dashboard');
+                }
             }
         }
+
 
         // =========================
         // LOGIN PENCARI KERJA
         // =========================
-        if ($role == 'pencari_kerja') {
+        if ($role === 'pencari_kerja') {
 
             $user = DB::table('pencari_kerja')
                 ->where('email', $email)
@@ -82,23 +124,67 @@ class LoginController extends Controller
 
             if ($user && Hash::check($password, $user->password)) {
 
-                session([
-                    'login' => true,
-                    'role' => 'pencari_kerja',
-                    'user_id' => $user->id_pencari,
-                    'user_name' => $user->nama,
-                ]);
+                // Belum diverifikasi admin
+                if ($user->status_verifikasi === 'menunggu') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu masih menunggu verifikasi admin.'
+                        );
+                }
 
-                return redirect()->route('pencari.dashboard');
+                // Ditolak admin
+                if ($user->status_verifikasi === 'ditolak') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu ditolak oleh admin.'
+                        );
+                }
+
+                // Akun dinonaktifkan admin
+                if ($user->status_akun === 'nonaktif') {
+                    return back()
+                        ->withInput()
+                        ->with(
+                            'error',
+                            'Akun kamu telah dinonaktifkan oleh admin.'
+                        );
+                }
+
+                // Login berhasil
+                if ($user->status_verifikasi === 'terverifikasi') {
+
+                    session([
+                        'login' => true,
+                        'role' => 'pencari_kerja',
+                        'user_id' => $user->id_pencari,
+                        'user_name' => $user->nama,
+                    ]);
+
+                    return redirect()->route('pencari.dashboard');
+                }
             }
         }
 
+
+        // =========================
+        // LOGIN GAGAL
+        // =========================
         return back()
             ->withInput()
-            ->with('error', 'Email, password, atau role tidak sesuai.');
+            ->with(
+                'error',
+                'Email, password, atau role tidak sesuai.'
+            );
     }
 
-    // Logout
+
+    // =========================
+    // LOGOUT
+    // =========================
     public function logout(Request $request)
     {
         $request->session()->flush();
