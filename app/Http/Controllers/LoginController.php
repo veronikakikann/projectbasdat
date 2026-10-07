@@ -23,22 +23,22 @@ class LoginController extends Controller
 
         $role = $request->role;
 
+        // =========================================================
+        // LOGIN ADMIN
+        // =========================================================
         if ($role === 'admin') {
 
             $user = DB::table('admin')
-                ->where(
-                    'email',
-                    $request->email
-                )
+                ->where('email', $request->email)
                 ->first();
 
             if (
-                $user
-                && Hash::check(
-                    $request->password,
-                    $user->password
-                )
+                $user &&
+                Hash::check($request->password, $user->password)
             ) {
+                // Regenerasi session setelah login berhasil
+                $request->session()->regenerate();
+
                 session([
                     'login' => true,
                     'role' => 'admin',
@@ -51,26 +51,22 @@ class LoginController extends Controller
             }
         }
 
+        // =========================================================
+        // LOGIN PEMBERI KERJA
+        // =========================================================
         if ($role === 'pemberi_kerja') {
 
             $user = DB::table('pemberi_kerja')
-                ->where(
-                    'email',
-                    $request->email
-                )
+                ->where('email', $request->email)
                 ->first();
 
             if (
-                $user
-                && Hash::check(
-                    $request->password,
-                    $user->password
-                )
+                $user &&
+                Hash::check($request->password, $user->password)
             ) {
-                if (
-                    $user->status_verifikasi
-                    !== 'terverifikasi'
-                ) {
+
+                // Cek status verifikasi admin
+                if ($user->status_verifikasi !== 'terverifikasi') {
                     return back()
                         ->withInput()
                         ->with(
@@ -79,10 +75,8 @@ class LoginController extends Controller
                         );
                 }
 
-                if (
-                    $user->status_akun
-                    !== 'aktif'
-                ) {
+                // Cek status akun
+                if ($user->status_akun !== 'aktif') {
                     return back()
                         ->withInput()
                         ->with(
@@ -90,6 +84,9 @@ class LoginController extends Controller
                             'Akun sedang dinonaktifkan.'
                         );
                 }
+
+                // Regenerasi session setelah semua pengecekan lolos
+                $request->session()->regenerate();
 
                 session([
                     'login' => true,
@@ -103,26 +100,22 @@ class LoginController extends Controller
             }
         }
 
+        // =========================================================
+        // LOGIN PENCARI KERJA
+        // =========================================================
         if ($role === 'pencari_kerja') {
 
             $user = DB::table('pencari_kerja')
-                ->where(
-                    'email',
-                    $request->email
-                )
+                ->where('email', $request->email)
                 ->first();
 
             if (
-                $user
-                && Hash::check(
-                    $request->password,
-                    $user->password
-                )
+                $user &&
+                Hash::check($request->password, $user->password)
             ) {
-                if (
-                    $user->status_verifikasi
-                    !== 'terverifikasi'
-                ) {
+
+                // Cek status verifikasi admin
+                if ($user->status_verifikasi !== 'terverifikasi') {
                     return back()
                         ->withInput()
                         ->with(
@@ -131,10 +124,8 @@ class LoginController extends Controller
                         );
                 }
 
-                if (
-                    $user->status_akun
-                    !== 'aktif'
-                ) {
+                // Cek status akun
+                if ($user->status_akun !== 'aktif') {
                     return back()
                         ->withInput()
                         ->with(
@@ -142,6 +133,9 @@ class LoginController extends Controller
                             'Akun sedang dinonaktifkan.'
                         );
                 }
+
+                // Regenerasi session setelah semua pengecekan lolos
+                $request->session()->regenerate();
 
                 session([
                     'login' => true,
@@ -155,6 +149,9 @@ class LoginController extends Controller
             }
         }
 
+        // =========================================================
+        // LOGIN GAGAL
+        // =========================================================
         return back()
             ->withInput()
             ->with(

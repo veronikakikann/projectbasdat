@@ -24,13 +24,13 @@ class RegisterController extends Controller
         $request->validate([
             'role' => [
                 'required',
-                'in:pemberi_kerja,pencari_kerja'
+                'in:pemberi_kerja,pencari_kerja',
             ],
 
             'nik' => [
                 'required',
                 'string',
-                'max:16',
+                'digits:16',
             ],
 
             'file_ktp' => [
@@ -77,9 +77,10 @@ class RegisterController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $nikSudahAda = DB::table('pencari_kerja')
-            ->where('nik', $request->nik)
-            ->exists()
+        $nikSudahAda =
+            DB::table('pencari_kerja')
+                ->where('nik', $request->nik)
+                ->exists()
             ||
             DB::table('pemberi_kerja')
                 ->where('nik', $request->nik)
@@ -100,11 +101,16 @@ class RegisterController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $emailSudahAda = DB::table('pencari_kerja')
-            ->where('email', $request->email)
-            ->exists()
+        $emailSudahAda =
+            DB::table('pencari_kerja')
+                ->where('email', $request->email)
+                ->exists()
             ||
             DB::table('pemberi_kerja')
+                ->where('email', $request->email)
+                ->exists()
+            ||
+            DB::table('admin')
                 ->where('email', $request->email)
                 ->exists();
 
@@ -121,18 +127,11 @@ class RegisterController extends Controller
         |--------------------------------------------------------------------------
         | SIMPAN FILE KTP
         |--------------------------------------------------------------------------
-        |
-        | Disimpan di storage/app/public/ktp
-        | sehingga dapat digunakan untuk proses verifikasi Admin.
-        |
         */
 
         $pathKtp = $request
             ->file('file_ktp')
-            ->store(
-                'ktp',
-                'public'
-            );
+            ->store('ktp', 'public');
 
         /*
         |--------------------------------------------------------------------------
@@ -149,14 +148,14 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
 
-            // Akun baru belum diverifikasi admin
+            // Akun baru harus diverifikasi Admin terlebih dahulu.
             'status_verifikasi' => 'menunggu',
 
-            // Akun aktif secara sistem,
-            // tetapi akses nantinya tetap dibatasi oleh status_verifikasi
+            // Akun aktif, tetapi belum bisa login
+            // karena status_verifikasi masih menunggu.
             'status_akun' => 'aktif',
 
-            // Belum ada admin yang melakukan verifikasi
+            // Belum ada Admin yang memverifikasi.
             'id_admin' => null,
 
             'tanggal_daftar' => now(),
@@ -164,63 +163,61 @@ class RegisterController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | REGISTER PEMBERI KERJA
+        | SIMPAN DATA
         |--------------------------------------------------------------------------
         */
 
-        if ($request->role === 'pemberi_kerja') {
+        try {
+            DB::transaction(function () use (
+                $request,
+                $dataUmum
+            ) {
 
-            DB::table('pemberi_kerja')
-                ->insert($dataUmum);
+                if ($request->role === 'pemberi_kerja') {
 
-            return redirect()
-                ->route('login')
+                    DB::table('pemberi_kerja')
+                        ->insert($dataUmum);
+
+                    return;
+                }
+
+                if ($request->role === 'pencari_kerja') {
+
+                    $dataPencari = array_merge(
+                        $dataUmum,
+                        [
+                            'foto_profil' => null,
+                            'latitude' => null,
+                            'longitude' => null,
+                            'file_surat_pengantar' => null,
+                        ]
+                    );
+
+                    DB::table('pencari_kerja')
+                        ->insert($dataPencari);
+                }
+            });
+        } catch (\Throwable $e) {
+
+            return back()
+                ->withInput()
                 ->with(
-                    'success',
-                    'Registrasi berhasil. Akun kamu menunggu verifikasi admin.'
+                    'error',
+                    'Registrasi gagal. Silakan coba lagi.'
                 );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | REGISTER PENCARI KERJA
+        | BERHASIL
         |--------------------------------------------------------------------------
         */
 
-        if ($request->role === 'pencari_kerja') {
-
-            $dataPencari = array_merge(
-                $dataUmum,
-                [
-                    'foto_profil' => null,
-                    'latitude' => null,
-                    'longitude' => null,
-                    'file_surat_pengantar' => null,
-                ]
-            );
-
-            DB::table('pencari_kerja')
-                ->insert($dataPencari);
-
-            return redirect()
-                ->route('login')
-                ->with(
-                    'success',
-                    'Registrasi berhasil. Akun kamu menunggu verifikasi admin.'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | FALLBACK
-        |--------------------------------------------------------------------------
-        */
-
-        return back()
-            ->withInput()
+        return redirect()
+            ->route('login')
             ->with(
-                'error',
-                'Registrasi gagal.'
+                'success',
+                'Registrasi berhasil. Akun kamu menunggu verifikasi admin.'
             );
     }
 }

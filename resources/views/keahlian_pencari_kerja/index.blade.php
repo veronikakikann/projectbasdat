@@ -1,170 +1,249 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <title>Keahlian Saya</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: #1f3c88;
+            color: white;
+        }
+
+        .warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f3f5;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .success {
+            color: #155724;
+        }
+
+        .pending {
+            color: #856404;
+        }
+
+        .rejected {
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Keahlian Saya</h1>
+<div class="container">
 
-    <a href="{{ route('pencari.dashboard') }}">
-        ← Kembali ke Dashboard
-    </a>
+    <div class="header">
 
-    <hr>
+        <h2>Keahlian Saya</h2>
+
+        <a
+            href="{{ route('keahlian_pencari_kerja.create') }}"
+            class="btn primary"
+        >
+            + Ajukan Keahlian
+        </a>
+
+    </div>
 
     @if(session('success'))
-        <p style="color: green;">
+        <div class="alert">
             {{ session('success') }}
-        </p>
+        </div>
     @endif
 
     @if(session('error'))
-        <p style="color: red;">
+        <div class="alert"
+             style="background:#f8d7da;color:#721c24;">
             {{ session('error') }}
-        </p>
+        </div>
     @endif
 
+    <table>
 
-    <h2>Keahlian Terverifikasi</h2>
+        <thead>
+            <tr>
+                <th>Judul Keahlian</th>
+                <th>Kategori</th>
+                <th>Deskripsi</th>
+                <th>Status</th>
+                <th>Tanggal Pengajuan</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
 
-    @php
-        $keahlianTerverifikasi = $data->filter(function ($d) {
-            return $d->status_verifikasi_keahlian === 'terverifikasi'
-                && $d->id_keahlian !== null;
-        });
-    @endphp
+        <tbody>
 
-    @if($keahlianTerverifikasi->count() > 0)
+        @forelse($data as $d)
 
-        @foreach($keahlianTerverifikasi as $d)
+            <tr>
 
-            <div
-                style="
-                    border: 1px solid #ccc;
-                    padding: 15px;
-                    margin-bottom: 15px;
-                "
-            >
-
-                <h3>
-                    {{ $d->nama_keahlian ?? $d->judul_keahlian }}
-                </h3>
-
-                <p>
-                    <strong>Deskripsi:</strong><br>
-                    {{ $d->deskripsi_keahlian ?? '-' }}
-                </p>
-
-                <p style="color: green;">
-                    ✓ Terverifikasi
-                </p>
-
-            </div>
-
-        @endforeach
-
-    @else
-
-        <p>
-            Belum ada keahlian yang terverifikasi.
-        </p>
-
-    @endif
-
-
-    <hr>
-
-
-    <h2>Pengajuan Keahlian</h2>
-
-    @php
-        $pengajuanKeahlian = $data->filter(function ($d) {
-            return $d->status_verifikasi_keahlian !== 'terverifikasi';
-        });
-    @endphp
-
-    @if($pengajuanKeahlian->count() > 0)
-
-        @foreach($pengajuanKeahlian as $d)
-
-            <div
-                style="
-                    border: 1px solid #ccc;
-                    padding: 15px;
-                    margin-bottom: 15px;
-                "
-            >
-
-                <h3>
+                <td>
                     {{ $d->judul_keahlian }}
-                </h3>
+                </td>
 
-                <p>
-                    <strong>Deskripsi:</strong><br>
-                    {{ $d->deskripsi_keahlian ?? '-' }}
-                </p>
+                <td>
+                    {{ $d->keahlian->nama_keahlian ?? 'Menunggu kategori' }}
+                </td>
 
-                <p>
-                    <strong>Bukti:</strong>
+                <td>
+                    {{ $d->deskripsi_keahlian }}
+                </td>
 
-                    @if($d->file_surat_rekomendasi)
-                        <a
-                            href="{{ asset('storage/' . $d->file_surat_rekomendasi) }}"
-                            target="_blank"
-                        >
-                            Lihat Bukti
-                        </a>
-                    @else
-                        -
-                    @endif
-                </p>
+                <td>
 
-                <p>
-                    <strong>Status:</strong>
+                    @if($d->status_verifikasi_keahlian === 'terverifikasi')
 
-                    @if($d->status_verifikasi_keahlian === 'menunggu')
-
-                        <span style="color: orange;">
-                            Menunggu Verifikasi
+                        <span class="status success">
+                            Terverifikasi
                         </span>
 
                     @elseif($d->status_verifikasi_keahlian === 'ditolak')
 
-                        <span style="color: red;">
+                        <span class="status rejected">
                             Ditolak
                         </span>
 
+                    @else
+
+                        <span class="status pending">
+                            Menunggu Verifikasi
+                        </span>
+
                     @endif
-                </p>
 
-                <p>
-                    <strong>Tanggal Pengajuan:</strong>
+                </td>
+
+                <td>
                     {{ $d->tanggal_upload }}
-                </p>
+                </td>
 
-            </div>
+                <td>
 
-        @endforeach
+                    @if(in_array(
+                        $d->status_verifikasi_keahlian,
+                        ['menunggu', 'ditolak']
+                    ))
 
-    @else
+                        <a
+                            href="{{ route(
+                                'keahlian_pencari_kerja.edit',
+                                $d->id_keahlian_pencari
+                            ) }}"
+                            class="btn warning"
+                        >
+                            Edit
+                        </a>
 
-        <p>
-            Belum ada pengajuan keahlian.
-        </p>
+                        <form
+                            action="{{ route(
+                                'keahlian_pencari_kerja.destroy',
+                                $d->id_keahlian_pencari
+                            ) }}"
+                            method="POST"
+                            style="display:inline;"
+                        >
 
-    @endif
+                            @csrf
+                            @method('DELETE')
 
+                            <button
+                                type="submit"
+                                class="btn danger"
+                                onclick="return confirm('Hapus pengajuan keahlian ini?')"
+                            >
+                                Hapus
+                            </button>
 
-    <hr>
+                        </form>
 
-    <a href="{{ route('keahlian_pencari_kerja.create') }}">
-        + Ajukan Keahlian Baru
-    </a>
+                    @else
+
+                        -
+
+                    @endif
+
+                </td>
+
+            </tr>
+
+        @empty
+
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    Belum ada keahlian yang diajukan.
+                </td>
+            </tr>
+
+        @endforelse
+
+        </tbody>
+
+    </table>
+
+</div>
 
 </body>
-
 </html>

@@ -5,24 +5,38 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\PemberiKerjaController;
-use App\Http\Controllers\PencariKerjaController;
-use App\Http\Controllers\KeahlianController;
-use App\Http\Controllers\KeahlianPencariKerjaController;
-use App\Http\Controllers\PekerjaanController;
-use App\Http\Controllers\LamaranController;
-use App\Http\Controllers\BuktiPenyelesaianController;
-use App\Http\Controllers\RatingController;
-use App\Http\Controllers\NotifikasiController;
+// ================================
+// ADMIN
+// ================================
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\PemberiKerjaController as AdminPemberiKerjaController;
+use App\Http\Controllers\Admin\PencariKerjaController as AdminPencariKerjaController;
+use App\Http\Controllers\Admin\KeahlianController as AdminKeahlianController;
+use App\Http\Controllers\Admin\VerifikasiKeahlianController;
 
+// ================================
+// PEMBERI
+// ================================
+use App\Http\Controllers\Pemberi\DashboardController as PemberiDashboardController;
+use App\Http\Controllers\Pemberi\ProfilController as PemberiProfilController;
 use App\Http\Controllers\Pemberi\PekerjaanController as PemberiPekerjaanController;
 use App\Http\Controllers\Pemberi\LamaranController as PemberiLamaranController;
-use App\Http\Controllers\Pemberi\NotifikasiController as PemberiNotifikasiController;
-use App\Http\Controllers\Pemberi\DashboardController as PemberiDashboardController;
 use App\Http\Controllers\Pemberi\BuktiController as PemberiBuktiController;
 use App\Http\Controllers\Pemberi\RatingController as PemberiRatingController;
-use App\Http\Controllers\Pemberi\ProfilController as PemberiProfilController;
+use App\Http\Controllers\Pemberi\NotifikasiController as PemberiNotifikasiController;
+
+// ================================
+// PENCARI
+// ================================
+use App\Http\Controllers\Pencari\DashboardController as PencariDashboardController;
+use App\Http\Controllers\Pencari\ProfilController as PencariProfilController;
+use App\Http\Controllers\Pencari\KeahlianController as PencariKeahlianController;
+use App\Http\Controllers\Pencari\PekerjaanController as PencariPekerjaanController;
+use App\Http\Controllers\Pencari\LamaranController as PencariLamaranController;
+use App\Http\Controllers\Pencari\BuktiController as PencariBuktiController;
+use App\Http\Controllers\Pencari\RatingController as PencariRatingController;
+use App\Http\Controllers\Pencari\NotifikasiController as PencariNotifikasiController;
 
 
 /*
@@ -46,7 +60,7 @@ Route::get('/contact', function () {
 
 /*
 |--------------------------------------------------------------------------
-| LOGIN
+| LOGIN & REGISTER
 |--------------------------------------------------------------------------
 */
 
@@ -59,13 +73,6 @@ Route::post('/login', [LoginController::class, 'login'])
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
-
-/*
-|--------------------------------------------------------------------------
-| REGISTER
-|--------------------------------------------------------------------------
-*/
-
 Route::get('/register', [RegisterController::class, 'showRegister'])
     ->name('register');
 
@@ -75,98 +82,65 @@ Route::post('/register', [RegisterController::class, 'register'])
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD ADMIN
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/admin/dashboard', function () {
-    return view('dashboard.admin');
-})->middleware('role:admin')->name('admin.dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| DASHBOARD PENCARI KERJA
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/pencari/dashboard',
-    [PencariKerjaController::class, 'dashboard']
-)->middleware('role:pencari_kerja')->name('pencari.dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| PROFIL PENCARI KERJA
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/pencari/profil',
-    [PencariKerjaController::class, 'profil']
-)->middleware('role:pencari_kerja')->name('pencari.profil');
-
-Route::put(
-    '/pencari/profil',
-    [PencariKerjaController::class, 'updateProfil']
-)->middleware('role:pencari_kerja')->name('pencari.profil.update');
-
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN ONLY
+| ADMIN
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('role:admin')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD ADMIN
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('admin', AdminController::class)
-        ->parameters([
-            'admin' => 'admin:id_admin'
-        ]);
+    // Dashboard
+    Route::get(
+        '/admin/dashboard',
+        [AdminDashboardController::class, 'index']
+    )->name('admin.dashboard');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD PEMBERI KERJA
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('pemberi_kerja', PemberiKerjaController::class)
-        ->parameters([
-            'pemberi_kerja' => 'pemberi_kerja:id_pemberi'
-        ]);
+    // CRUD Admin
+    Route::resource(
+        'admin',
+        AdminController::class
+    )->parameters([
+        'admin' => 'admin:id_admin'
+    ])->except('show');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD PENCARI KERJA
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('pencari_kerja', PencariKerjaController::class)
-        ->parameters([
-            'pencari_kerja' => 'pencari_kerja:id_pencari'
-        ]);
+    // CRUD Pemberi Kerja
+    Route::resource(
+        'pemberi_kerja',
+        AdminPemberiKerjaController::class
+    )->parameters([
+        'pemberi_kerja' => 'pemberi_kerja:id_pemberi'
+    ])->except('show');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD KEAHLIAN
-    |--------------------------------------------------------------------------
-    */
+    // CRUD Pencari Kerja
+    Route::resource(
+        'pencari_kerja',
+        AdminPencariKerjaController::class
+    )->parameters([
+        'pencari_kerja' => 'pencari_kerja:id_pencari'
+    ])->except('show');
 
-    Route::resource('keahlian', KeahlianController::class)
-        ->parameters([
-            'keahlian' => 'keahlian:id_keahlian'
-        ]);
+
+    // Master Keahlian
+    Route::resource(
+        'keahlian',
+        AdminKeahlianController::class
+    )->parameters([
+        'keahlian' => 'keahlian:id_keahlian'
+    ])->except('show');
+
+
+    // Verifikasi keahlian pencari
+    Route::get(
+        '/admin/verifikasi-keahlian',
+        [VerifikasiKeahlianController::class, 'index']
+    )->name('admin.verifikasi-keahlian');
+
+    Route::patch(
+        '/admin/verifikasi-keahlian/{id_keahlian_pencari}',
+        [VerifikasiKeahlianController::class, 'keputusan']
+    )->name('admin.verifikasi-keahlian.keputusan');
 });
 
 
@@ -183,9 +157,31 @@ Route::middleware('role:pemberi_kerja')
 
         // Dashboard
         Route::get(
-            'dashboard',
+            '/dashboard',
             [PemberiDashboardController::class, 'index']
         )->name('dashboard');
+
+
+        // Profil
+        Route::get(
+            '/profil',
+            [PemberiProfilController::class, 'show']
+        )->name('profil.show');
+
+        Route::get(
+            '/profil/edit',
+            [PemberiProfilController::class, 'edit']
+        )->name('profil.edit');
+
+        Route::put(
+            '/profil',
+            [PemberiProfilController::class, 'update']
+        )->name('profil.update');
+
+        Route::get(
+            '/profil/foto',
+            [PemberiProfilController::class, 'foto']
+        )->name('profil.foto');
 
 
         // Pekerjaan
@@ -197,96 +193,75 @@ Route::middleware('role:pemberi_kerja')
         ]);
 
         Route::patch(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/mulai',
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/mulai',
             [PemberiPekerjaanController::class, 'mulai']
         )->name('pekerjaan.mulai');
 
         Route::patch(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/tutup',
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/tutup',
             [PemberiPekerjaanController::class, 'tutup']
         )->name('pekerjaan.tutup');
 
 
-        // Pelamar
+        // Lamaran / Pelamar
         Route::get(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/pelamar',
-            [PemberiLamaranController::class, 'perPekerjaan']
-        )->name('pelamar.index');
-
-        Route::get(
-            'lamaran',
+            '/lamaran',
             [PemberiLamaranController::class, 'index']
         )->name('lamaran.index');
 
+        Route::get(
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/pelamar',
+            [PemberiLamaranController::class, 'perPekerjaan']
+        )->name('pelamar.index');
+
         Route::patch(
-            'lamaran/{lamaran:id_lamaran}',
+            '/lamaran/{lamaran:id_lamaran}',
             [PemberiLamaranController::class, 'update']
         )->name('lamaran.update');
 
 
         // Bukti penyelesaian
         Route::get(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/bukti',
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/bukti',
             [PemberiBuktiController::class, 'create']
         )->name('bukti.create');
 
         Route::post(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/bukti',
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/bukti',
             [PemberiBuktiController::class, 'store']
         )->name('bukti.store');
 
         Route::get(
-            'pekerjaan/{pekerjaan:id_pekerjaan}/bukti/{jenis}',
+            '/pekerjaan/{pekerjaan:id_pekerjaan}/bukti/{jenis}',
             [PemberiBuktiController::class, 'file']
-        )->whereIn('jenis', ['kerja', 'bayar'])
+        )
+        ->whereIn('jenis', ['kerja', 'bayar'])
         ->name('bukti.file');
 
 
         // Rating
         Route::get(
-            'lamaran/{lamaran:id_lamaran}/rating',
+            '/lamaran/{lamaran:id_lamaran}/rating',
             [PemberiRatingController::class, 'form']
         )->name('rating.form');
 
         Route::post(
-            'lamaran/{lamaran:id_lamaran}/rating',
+            '/lamaran/{lamaran:id_lamaran}/rating',
             [PemberiRatingController::class, 'store']
         )->name('rating.store');
 
         Route::put(
-            'rating/{rating:id_rating}',
+            '/rating/{rating:id_rating}',
             [PemberiRatingController::class, 'update']
         )->name('rating.update');
 
 
         // Notifikasi
         Route::get(
-            'notifikasi',
+            '/notifikasi',
             [PemberiNotifikasiController::class, 'index']
         )->name('notifikasi.index');
-
-
-        // Profil
-        Route::get(
-            'profil',
-            [PemberiProfilController::class, 'show']
-        )->name('profil.show');
-
-        Route::get(
-            'profil/edit',
-            [PemberiProfilController::class, 'edit']
-        )->name('profil.edit');
-
-        Route::put(
-            'profil',
-            [PemberiProfilController::class, 'update']
-        )->name('profil.update');
-
-        Route::get(
-            'profil/foto',
-            [PemberiProfilController::class, 'foto']
-        )->name('profil.foto');
-    });
+});
 
 
 /*
@@ -297,134 +272,122 @@ Route::middleware('role:pemberi_kerja')
 
 Route::middleware('role:pencari_kerja')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | KEAHLIAN PENCARI KERJA
-    |--------------------------------------------------------------------------
-    */
+    // Dashboard
+    Route::get(
+        '/pencari/dashboard',
+        [PencariDashboardController::class, 'index']
+    )->name('pencari.dashboard');
 
+
+    // Profil
+    Route::get(
+        '/pencari/profil',
+        [PencariProfilController::class, 'show']
+    )->name('pencari.profil');
+
+    Route::put(
+        '/pencari/profil',
+        [PencariProfilController::class, 'update']
+    )->name('pencari.profil.update');
+
+
+    // Keahlian pencari
     Route::get(
         '/keahlian_pencari_kerja',
-        [KeahlianPencariKerjaController::class, 'index']
+        [PencariKeahlianController::class, 'index']
     )->name('keahlian_pencari_kerja.index');
 
     Route::get(
         '/keahlian_pencari_kerja/create',
-        [KeahlianPencariKerjaController::class, 'create']
+        [PencariKeahlianController::class, 'create']
     )->name('keahlian_pencari_kerja.create');
 
     Route::post(
         '/keahlian_pencari_kerja',
-        [KeahlianPencariKerjaController::class, 'store']
+        [PencariKeahlianController::class, 'store']
     )->name('keahlian_pencari_kerja.store');
 
     Route::get(
-        '/keahlian_pencari_kerja/{id_pencari}/{id_keahlian}/edit',
-        [KeahlianPencariKerjaController::class, 'edit']
+        '/keahlian_pencari_kerja/{id_keahlian_pencari}/edit',
+        [PencariKeahlianController::class, 'edit']
     )->name('keahlian_pencari_kerja.edit');
 
     Route::put(
-        '/keahlian_pencari_kerja/{id_pencari}/{id_keahlian}',
-        [KeahlianPencariKerjaController::class, 'update']
+        '/keahlian_pencari_kerja/{id_keahlian_pencari}',
+        [PencariKeahlianController::class, 'update']
     )->name('keahlian_pencari_kerja.update');
 
     Route::delete(
-        '/keahlian_pencari_kerja/{id_pencari}/{id_keahlian}',
-        [KeahlianPencariKerjaController::class, 'destroy']
+        '/keahlian_pencari_kerja/{id_keahlian_pencari}',
+        [PencariKeahlianController::class, 'destroy']
     )->name('keahlian_pencari_kerja.destroy');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CARI PEKERJAAN
-    |--------------------------------------------------------------------------
-    */
-
+    // Cari pekerjaan
     Route::get(
         '/pencari/cari-pekerjaan',
-        [PekerjaanController::class, 'cari']
+        [PencariPekerjaanController::class, 'index']
     )->name('pencari.cari-pekerjaan');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LAMAR PEKERJAAN
-    |--------------------------------------------------------------------------
-    */
+    // Detail pekerjaan
+    Route::get(
+        '/pekerjaan/{pekerjaan}',
+        [PencariPekerjaanController::class, 'show']
+    )->name('pekerjaan.show');
 
+
+    // Lamar pekerjaan
     Route::post(
         '/pencari/pekerjaan/{pekerjaan}/lamar',
-        [LamaranController::class, 'lamar']
+        [PencariLamaranController::class, 'store']
     )->name('pencari.lamar');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LAMARAN SAYA
-    |--------------------------------------------------------------------------
-    */
-
+    // Lamaran saya
     Route::get(
         '/pencari/lamaran-saya',
-        [LamaranController::class, 'lamaranSaya']
+        [PencariLamaranController::class, 'index']
     )->name('pencari.lamaran-saya');
 
+    // Batalkan lamaran yang masih menunggu
+    Route::delete(
+        '/pencari/lamaran/{lamaran:id_lamaran}',
+        [PencariLamaranController::class, 'batalkan']
+    )->name('pencari.lamaran.batal');
 
-    /*
-    |--------------------------------------------------------------------------
-    | DETAIL PEKERJAAN
-    |--------------------------------------------------------------------------
-    */
 
+    // Bukti penyelesaian
     Route::get(
-        '/pekerjaan/{pekerjaan}',
-        [PekerjaanController::class, 'show']
-    )->name('pekerjaan.show');
+        '/pencari/lamaran/{lamaran:id_lamaran}/bukti',
+        [PencariBuktiController::class, 'create']
+    )->name('pencari.bukti.create');
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD LAMARAN
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('lamaran', LamaranController::class)
-        ->parameters([
-            'lamaran' => 'lamaran:id_lamaran'
-        ]);
+    Route::post(
+        '/pencari/lamaran/{lamaran:id_lamaran}/bukti',
+        [PencariBuktiController::class, 'store']
+    )->name('pencari.bukti.store');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD NOTIFIKASI
-    |--------------------------------------------------------------------------
-    */
+    // Rating
+    Route::get(
+        '/pencari/lamaran/{lamaran:id_lamaran}/rating',
+        [PencariRatingController::class, 'form']
+    )->name('pencari.rating.form');
 
-    Route::resource('notifikasi', NotifikasiController::class)
-        ->parameters([
-            'notifikasi' => 'notifikasi:id_notifikasi'
-        ]);
+    Route::post(
+        '/pencari/lamaran/{lamaran:id_lamaran}/rating',
+        [PencariRatingController::class, 'store']
+    )->name('pencari.rating.store');
 
+    Route::put(
+        '/pencari/rating/{rating:id_rating}',
+        [PencariRatingController::class, 'update']
+    )->name('pencari.rating.update');
 
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD BUKTI PENYELESAIAN
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('bukti_penyelesaian', BuktiPenyelesaianController::class)
-        ->parameters([
-            'bukti_penyelesaian' => 'bukti_penyelesaian:id_bukti'
-        ]);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD RATING
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource('rating', RatingController::class)
-        ->parameters([
-            'rating' => 'rating:id_rating'
-        ]);
+    // Notifikasi
+    Route::get(
+        '/pencari/notifikasi',
+        [PencariNotifikasiController::class, 'index']
+    )->name('pencari.notifikasi');
 });

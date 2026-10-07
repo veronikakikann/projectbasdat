@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Pencari;
 
 use App\Http\Controllers\Controller;
+use App\Models\KeahlianPencariKerja;
 use App\Models\PencariKerja;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class KeahlianController extends Controller
@@ -14,24 +14,9 @@ class KeahlianController extends Controller
     {
         $idPencari = session('user_id');
 
-        $data = DB::table('keahlian_pencari_kerja')
-            ->leftJoin(
-                'keahlian',
-                'keahlian_pencari_kerja.id_keahlian',
-                '=',
-                'keahlian.id_keahlian'
-            )
-            ->where(
-                'keahlian_pencari_kerja.id_pencari',
-                $idPencari
-            )
-            ->select(
-                'keahlian_pencari_kerja.*',
-                'keahlian.nama_keahlian'
-            )
-            ->orderByDesc(
-                'keahlian_pencari_kerja.tanggal_upload'
-            )
+        $data = KeahlianPencariKerja::with('keahlian')
+            ->where('id_pencari', $idPencari)
+            ->orderByDesc('tanggal_upload')
             ->get();
 
         return view(
@@ -49,12 +34,10 @@ class KeahlianController extends Controller
     {
         $idPencari = session('user_id');
 
-        if (
-            !PencariKerja::where(
-                'id_pencari',
-                $idPencari
-            )->exists()
-        ) {
+        if (!PencariKerja::where(
+            'id_pencari',
+            $idPencari
+        )->exists()) {
             return redirect()
                 ->route('login')
                 ->with(
@@ -81,21 +64,29 @@ class KeahlianController extends Controller
                 'public'
             );
 
-        DB::table('keahlian_pencari_kerja')
-            ->insert([
-                'id_pencari' => $idPencari,
-                'id_keahlian' => null,
-                'judul_keahlian' =>
-                    $data['judul_keahlian'],
-                'deskripsi_keahlian' =>
-                    $data['deskripsi_keahlian'],
-                'file_surat_rekomendasi' =>
-                    $filePath,
-                'status_verifikasi_keahlian' =>
-                    'menunggu',
-                'tanggal_upload' =>
-                    now()->toDateString(),
-            ]);
+        KeahlianPencariKerja::create([
+            'id_pencari' =>
+                $idPencari,
+
+            // Kategori ditentukan Admin
+            'id_keahlian' =>
+                null,
+
+            'judul_keahlian' =>
+                $data['judul_keahlian'],
+
+            'deskripsi_keahlian' =>
+                $data['deskripsi_keahlian'],
+
+            'file_surat_rekomendasi' =>
+                $filePath,
+
+            'status_verifikasi_keahlian' =>
+                'menunggu',
+
+            'tanggal_upload' =>
+                now(),
+        ]);
 
         return redirect()
             ->route('keahlian_pencari_kerja.index')
@@ -107,11 +98,10 @@ class KeahlianController extends Controller
 
     public function edit(int $id_keahlian_pencari)
     {
-        $row = DB::table('keahlian_pencari_kerja')
-            ->where(
-                'id_keahlian_pencari',
-                $id_keahlian_pencari
-            )
+        $row = KeahlianPencariKerja::where(
+            'id_keahlian_pencari',
+            $id_keahlian_pencari
+        )
             ->where(
                 'id_pencari',
                 session('user_id')
@@ -120,7 +110,6 @@ class KeahlianController extends Controller
 
         abort_unless($row, 404);
 
-        // Hanya data yang belum final yang boleh diedit
         abort_unless(
             in_array(
                 $row->status_verifikasi_keahlian,
@@ -140,11 +129,10 @@ class KeahlianController extends Controller
         Request $request,
         int $id_keahlian_pencari
     ) {
-        $row = DB::table('keahlian_pencari_kerja')
-            ->where(
-                'id_keahlian_pencari',
-                $id_keahlian_pencari
-            )
+        $row = KeahlianPencariKerja::where(
+            'id_keahlian_pencari',
+            $id_keahlian_pencari
+        )
             ->where(
                 'id_pencari',
                 session('user_id')
@@ -173,26 +161,26 @@ class KeahlianController extends Controller
                 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $update = [
-            'judul_keahlian' =>
-                $data['judul_keahlian'],
+        $row->judul_keahlian =
+            $data['judul_keahlian'];
 
-            'deskripsi_keahlian' =>
-                $data['deskripsi_keahlian'],
+        $row->deskripsi_keahlian =
+            $data['deskripsi_keahlian'];
 
-            // Set kembali ke menunggu setelah perubahan
-            'status_verifikasi_keahlian' =>
-                'menunggu',
-        ];
+        // Jika ditolak lalu diperbaiki,
+        // pengajuan kembali menunggu verifikasi.
+        $row->status_verifikasi_keahlian =
+            'menunggu';
 
         if ($request->hasFile('file_surat_rekomendasi')) {
+
             if ($row->file_surat_rekomendasi) {
                 Storage::disk('public')->delete(
                     $row->file_surat_rekomendasi
                 );
             }
 
-            $update['file_surat_rekomendasi'] =
+            $row->file_surat_rekomendasi =
                 $request
                     ->file('file_surat_rekomendasi')
                     ->store(
@@ -201,12 +189,9 @@ class KeahlianController extends Controller
                     );
         }
 
-        DB::table('keahlian_pencari_kerja')
-            ->where(
-                'id_keahlian_pencari',
-                $id_keahlian_pencari
-            )
-            ->update($update);
+        $row->tanggal_upload = now();
+
+        $row->save();
 
         return redirect()
             ->route('keahlian_pencari_kerja.index')
@@ -218,11 +203,10 @@ class KeahlianController extends Controller
 
     public function destroy(int $id_keahlian_pencari)
     {
-        $row = DB::table('keahlian_pencari_kerja')
-            ->where(
-                'id_keahlian_pencari',
-                $id_keahlian_pencari
-            )
+        $row = KeahlianPencariKerja::where(
+            'id_keahlian_pencari',
+            $id_keahlian_pencari
+        )
             ->where(
                 'id_pencari',
                 session('user_id')
@@ -246,12 +230,7 @@ class KeahlianController extends Controller
             );
         }
 
-        DB::table('keahlian_pencari_kerja')
-            ->where(
-                'id_keahlian_pencari',
-                $id_keahlian_pencari
-            )
-            ->delete();
+        $row->delete();
 
         return redirect()
             ->route('keahlian_pencari_kerja.index')

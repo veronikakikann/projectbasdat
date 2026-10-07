@@ -8,31 +8,54 @@ use App\Models\Pekerjaan;
 
 class DashboardController extends Controller
 {
-    // Dashboard sederhana: semua angka dihitung dari data pemberi yang sedang login
+    // Dashboard Pemberi Kerja
     public function index()
     {
         $id = session('user_id');
 
-        // jumlah lowongan per status: ['tersedia' => 2, 'selesai' => 1, ...]
+        // Jumlah lowongan berdasarkan status
+        // Contoh:
+        // tersedia => 2
+        // penuh => 1
+        // sedang_dikerjakan => 1
+        // selesai => 2
         $perStatus = Pekerjaan::where('id_pemberi', $id)
             ->selectRaw('status_pekerjaan, COUNT(*) as total')
             ->groupBy('status_pekerjaan')
             ->pluck('total', 'status_pekerjaan');
 
-        $pelamar = fn () => Lamaran::whereHas('pekerjaan', fn ($q) => $q->where('id_pemberi', $id));
+        // Semua lamaran yang masuk ke lowongan milik pemberi yang sedang login
+        $pelamar = fn () => Lamaran::whereHas(
+            'pekerjaan',
+            fn ($q) => $q->where('id_pemberi', $id)
+        );
 
-        $totalPelamar    = $pelamar()->count();
-        $pelamarMenunggu = $pelamar()->where('status_lamaran', 'menunggu')->count();
+        // Total seluruh pelamar
+        $totalPelamar = $pelamar()->count();
 
+        // Total lamaran yang masih menunggu
+        $pelamarMenunggu = $pelamar()
+            ->where('status_lamaran', 'menunggu')
+            ->count();
+
+        // Lima lowongan terbaru milik pemberi
+        // sekaligus menghitung jumlah pelamar dan pelamar yang masih menunggu
         $terbaru = Pekerjaan::withCount([
-                'lamaran',
-                'lamaran as menunggu_count' => fn ($q) => $q->where('status_lamaran', 'menunggu'),
-            ])
+            'lamaran',
+            'lamaran as menunggu_count' => fn ($q) =>
+                $q->where('status_lamaran', 'menunggu'),
+        ])
             ->where('id_pemberi', $id)
             ->orderByDesc('tanggal_posting')
             ->limit(5)
             ->get();
 
-        return view('dashboard.pemberi', compact('perStatus', 'totalPelamar', 'pelamarMenunggu', 'terbaru'));
+        // View Pemberi
+        return view('pemberi.dashboard', compact(
+            'perStatus',
+            'totalPelamar',
+            'pelamarMenunggu',
+            'terbaru'
+        ));
     }
 }

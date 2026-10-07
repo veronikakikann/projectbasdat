@@ -2,93 +2,206 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Detail Pekerjaan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ $pekerjaan->nama_pekerjaan }}</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+        }
+
+        .navbar {
+            background: #1f3c88;
+            padding: 16px 30px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        .info {
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+        .description {
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .primary {
+            background: #1f3c88;
+            color: white;
+        }
+
+        .secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h1>Detail Pekerjaan</h1>
+<div class="navbar">
 
-    <a href="{{ route('pencari.cari-pekerjaan') }}">
-        ← Kembali ke Cari Pekerjaan
+    <a href="{{ route('pencari.dashboard') }}">
+        Dashboard
     </a>
 
-    <hr>
+    <a href="{{ route('pencari.cari-pekerjaan') }}">
+        Cari Pekerjaan
+    </a>
+
+    <a href="{{ route('pencari.lamaran-saya') }}">
+        Lamaran Saya
+    </a>
+
+</div>
+
+<div class="container">
 
     @if(session('success'))
-        <p style="color: green;">
+        <div class="alert success">
             {{ session('success') }}
-        </p>
+        </div>
     @endif
 
     @if(session('error'))
-        <p style="color: red;">
+        <div class="alert error">
             {{ session('error') }}
-        </p>
+        </div>
     @endif
 
-    <h2>{{ $pekerjaan->nama_pekerjaan }}</h2>
+    <div class="card">
 
-    <p>
-        <strong>Pemberi Kerja:</strong>
-        {{ $pekerjaan->pemberiKerja->nama ?? '-' }}
-    </p>
+        <h2>
+            {{ $pekerjaan->nama_pekerjaan }}
+        </h2>
 
-    <p>
-        <strong>Jenis Pekerjaan:</strong>
-        {{ $pekerjaan->keahlian->nama_keahlian ?? '-' }}
-    </p>
+        <div class="info">
+            <span class="label">Pemberi Kerja:</span>
+            {{ $pekerjaan->pemberiKerja->nama ?? '-' }}
+        </div>
 
-    <p>
-        <strong>Lokasi:</strong>
-        {{ $pekerjaan->lokasi ?? '-' }}
-    </p>
+        <div class="info">
+            <span class="label">Keahlian:</span>
+            {{ $pekerjaan->keahlian->nama_keahlian ?? '-' }}
+        </div>
 
-    <p>
-        <strong>Deskripsi:</strong><br>
-        {{ $pekerjaan->deskripsi ?? '-' }}
-    </p>
+        <div class="info">
+            <span class="label">Lokasi:</span>
+            {{ $pekerjaan->lokasi ?? '-' }}
+        </div>
 
-    <p>
-        <strong>Persyaratan:</strong><br>
-        {{ $pekerjaan->persyaratan ?? '-' }}
-    </p>
+        <div class="info">
+            <span class="label">Tanggal Pekerjaan:</span>
+            {{ $pekerjaan->tanggal_pengerjaan ?? '-' }}
+        </div>
 
-    <p>
-        <strong>Tanggal Pengerjaan:</strong>
-        {{ $pekerjaan->tanggal_pengerjaan ?? '-' }}
-    </p>
+        <div class="info">
+            <span class="label">Jumlah Pekerja:</span>
+            {{ $pekerjaan->jumlah_pekerja }}
+        </div>
 
-    <p>
-        <strong>Jumlah Pekerja Dibutuhkan:</strong>
-        {{ $pekerjaan->jumlah_pekerja }} orang
-    </p>
+        <div class="info">
+            <span class="label">Upah:</span>
+            Rp {{ number_format($pekerjaan->upah ?? 0, 0, ',', '.') }}
+        </div>
 
-    <p>
-        <strong>Upah:</strong>
-        Rp {{ number_format($pekerjaan->upah, 0, ',', '.') }}
-    </p>
+        <hr>
 
-    <p>
-        <strong>Status:</strong>
-        {{ $pekerjaan->status_pekerjaan }}
-    </p>
+        <h3>Deskripsi Pekerjaan</h3>
 
-    @if($pekerjaan->status_pekerjaan === 'tersedia')
-        <form
-            action="{{ route('pencari.lamar', $pekerjaan->id_pekerjaan) }}"
-            method="POST"
+        <div class="description">
+            {{ $pekerjaan->deskripsi ?? '-' }}
+        </div>
+
+        <h3>Syarat Pekerjaan</h3>
+
+        <div class="description">
+            {{ $pekerjaan->persyaratan ?? '-' }}
+        </div>
+
+        <br>
+
+        <a
+            href="{{ route('pencari.cari-pekerjaan') }}"
+            class="btn secondary"
         >
-            @csrf
+            Kembali
+        </a>
 
-            <button type="submit">
-                Lamar Pekerjaan
-            </button>
-        </form>
-    @else
-        <p style="color: red;">
-            Pekerjaan ini sudah tidak tersedia.
-        </p>
-    @endif
+        @if($pekerjaan->status_pekerjaan === 'tersedia')
+
+            <form
+                action="{{ route('pencari.lamar', $pekerjaan->id_pekerjaan) }}"
+                method="POST"
+                style="display:inline;"
+            >
+
+                @csrf
+
+                <button
+                    type="submit"
+                    class="btn primary"
+                    onclick="return confirm('Yakin ingin melamar pekerjaan ini?')"
+                >
+                    Lamar Pekerjaan
+                </button>
+
+            </form>
+
+        @endif
+
+    </div>
+
+</div>
 
 </body>
 </html>

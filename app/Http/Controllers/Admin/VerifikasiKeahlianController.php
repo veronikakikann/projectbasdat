@@ -4,72 +4,131 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Keahlian;
+use App\Models\KeahlianPencariKerja;
+use App\Models\Notifikasi;
 use Illuminate\Http\Request;
 
-class KeahlianController extends Controller
+class VerifikasiKeahlianController extends Controller
 {
+    /**
+     * Menampilkan pengajuan keahlian yang menunggu verifikasi.
+     */
     public function index()
     {
+        $data = KeahlianPencariKerja::with([
+            'pencariKerja',
+            'keahlian',
+        ])
+            ->where(
+                'status_verifikasi_keahlian',
+                'menunggu'
+            )
+            ->orderByDesc('tanggal_upload')
+            ->get();
+
         $keahlian = Keahlian::orderBy('nama_keahlian')->get();
 
-        return view('keahlian.index', compact('keahlian'));
+        return view(
+            'admin.verifikasi-keahlian',
+            compact('data', 'keahlian')
+        );
     }
 
-    public function create()
-    {
-        return view('keahlian.create');
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'nama_keahlian' => 'required|string|max:100|unique:keahlian,nama_keahlian',
-            'deskripsi' => 'nullable|string',
-        ]);
-
-        Keahlian::create($data);
-
-        return redirect()
-            ->route('keahlian.index')
-            ->with('success', 'Keahlian berhasil ditambahkan.');
-    }
-
-    public function edit(Keahlian $keahlian)
-    {
-        return view('keahlian.edit', compact('keahlian'));
-    }
-
-    public function update(
+    /**
+     * Menyimpan keputusan Admin terhadap pengajuan keahlian.
+     */
+    public function keputusan(
         Request $request,
-        Keahlian $keahlian
+        int $id_keahlian_pencari
     ) {
         $data = $request->validate([
-            'nama_keahlian' => 'required|string|max:100|unique:keahlian,nama_keahlian,' .
-                $keahlian->id_keahlian . ',id_keahlian',
-            'deskripsi' => 'nullable|string',
+            'status_verifikasi_keahlian' => [
+                'required',
+                'in:terverifikasi,ditolak',
+            ],
+
+            'id_keahlian' => [
+                'nullable',
+                'exists:keahlian,id_keahlian',
+            ],
         ]);
 
-        $keahlian->update($data);
+        $pengajuan = KeahlianPencariKerja::find(
+            $id_keahlian_pencari
+        );
 
-        return redirect()
-            ->route('keahlian.index')
-            ->with('success', 'Keahlian berhasil diperbarui.');
-    }
-
-    public function destroy(Keahlian $keahlian)
-    {
-        // Jangan menghapus kategori yang masih dipakai
-        if ($keahlian->pekerjaan()->exists()) {
+        if (!$pengajuan) {
             return back()->with(
                 'error',
-                'Keahlian masih digunakan oleh lowongan pekerjaan.'
+                'Data pengajuan keahlian tidak ditemukan.'
             );
         }
 
-        $keahlian->delete();
+        // Pastikan hanya pengajuan yang masih menunggu
+        // yang dapat diproses.
+        if (
+            $pengajuan->status_verifikasi_keahlian
+            !== 'menunggu'
+        ) {
+            return back()->with(
+                'error',
+                'Pengajuan keahlian ini sudah diproses.'
+            );
+        }
 
-        return redirect()
-            ->route('keahlian.index')
-            ->with('success', 'Keahlian berhasil dihapus.');
+        // Jika diterima, kategori keahlian wajib dipilih.
+        if (
+            $data['status_verifikasi_keahlian']
+            === 'terverifikasi'
+            && empty($data['id_keahlian'])
+        ) {
+            return back()->with(
+                'error',
+                'Pilih kategori keahlian terlebih dahulu.'
+            );
+        }
+
+        // Jika ditolak, kategori master dikosongkan.
+        if (
+            $data['status_verifikasi_keahlian']
+            === 'ditolak'
+        ) {
+            $pengajuan->id_keahlian = null;
+        } else {
+            $pengajuan->id_keahlian =
+                $data['id_keahlian'];
+        }
+
+        $pengajuan->status_verifikasi_keahlian =
+            $data['status_verifikasi_keahlian'];
+
+        $pengajuan->save();
+
+        // Kirim notifikasi kepada pencari kerja.
+        if (
+            $data['status_verifikasi_keahlian']
+            === 'terverifikasi'
+        ) {
+            Notifikasi::kirim(
+                $pengajuan->id_pencari,
+                'pencari_kerja',
+                'Pengajuan keahlian "' .
+                $pengajuan->judul_keahlian .
+                '" telah diverifikasi oleh admin.'
+            );
+        } else {
+            Notifikasi::kirim(
+                $pengajuan->id_pencari,
+                'pencari_kerja',
+                'Pengajuan keahlian "' .
+                $pengajuan->judul_keahlian .
+                '" ditolak oleh admin.'
+            );
+        }
+
+        return back()->with(
+            'success',
+            'Keputusan verifikasi berhasil disimpan.'
+        );
     }
 }

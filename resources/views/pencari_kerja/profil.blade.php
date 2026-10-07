@@ -1,139 +1,130 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Profil Saya</title>
+    <title>Profil Pencari Kerja</title>
 
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            background: #f5f6fa;
+            margin: 0;
         }
 
-        .header {
-            background: #27ae60;
+        .navbar {
+            background: #1f3c88;
             color: white;
-            padding: 25px 40px;
+            padding: 16px 30px;
         }
 
-        .header h1 {
-            margin: 0 0 10px 0;
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
         }
 
         .container {
-            width: 90%;
             max-width: 800px;
             margin: 30px auto;
+            padding: 20px;
         }
 
         .card {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            border-radius: 10px;
         }
 
-        .field {
+        .form-group {
             margin-bottom: 18px;
         }
 
-        .field label {
+        label {
             display: block;
-            font-weight: bold;
             margin-bottom: 6px;
+            font-weight: bold;
         }
 
-        .field input,
-        .field textarea {
+        input,
+        textarea {
             width: 100%;
-            box-sizing: border-box;
             padding: 10px;
+            box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 6px;
         }
 
-        .field input[readonly] {
-            background: #f0f0f0;
+        textarea {
+            min-height: 100px;
         }
 
-        .status {
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 20px;
+        input[readonly] {
+            background: #eee;
         }
 
-        .menunggu {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .terverifikasi {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .ditolak {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .btn {
-            display: inline-block;
-            background: #27ae60;
+        button {
+            background: #1f3c88;
             color: white;
-            padding: 10px 16px;
             border: none;
+            padding: 12px 20px;
             border-radius: 6px;
             cursor: pointer;
         }
 
-        .back {
-            color: white;
-            text-decoration: none;
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
         }
 
         .error {
-            color: red;
-        }
-
-        .success {
-            color: green;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
         }
     </style>
-
 </head>
 
 <body>
 
-    <div class="header">
+<div class="navbar">
 
-        <h1>Profil Saya</h1>
+    <a href="{{ route('pencari.dashboard') }}">
+        Dashboard
+    </a>
 
-        <a
-            href="{{ route('pencari.dashboard') }}"
-            class="back"
-        >
-            ← Kembali ke Dashboard
-        </a>
+    <a href="{{ route('pencari.cari-pekerjaan') }}">
+        Cari Pekerjaan
+    </a>
 
-    </div>
+    <a href="{{ route('pencari.lamaran-saya') }}">
+        Lamaran Saya
+    </a>
 
-    <div class="container">
+</div>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Profil Pencari Kerja</h2>
 
         @if(session('success'))
-            <p class="success">
+            <div class="success">
                 {{ session('success') }}
-            </p>
+            </div>
         @endif
 
         @if(session('error'))
-            <p class="error">
+            <div class="error">
                 {{ session('error') }}
-            </p>
+            </div>
         @endif
 
         @if($errors->any())
@@ -146,151 +137,132 @@
             </div>
         @endif
 
-        <div class="card">
+        <form action="{{ route('pencari.profil.update') }}"
+              method="POST">
 
-            <h2>Data Pribadi</h2>
+            @csrf
+            @method('PUT')
 
-            <form
-                action="{{ route('pencari.profil.update') }}"
-                method="POST"
-            >
+            <div class="form-group">
 
-                @csrf
-                @method('PUT')
+                <label>NIK</label>
 
-                <div class="field">
-
-                    <label>NIK</label>
-
-                    <input
-                        type="text"
-                        value="{{ $pencari->nik }}"
-                        maxlength="16"
-                        readonly
-                    >
-
-                    <small style="color: #777;">
-                        NIK tidak dapat diubah karena digunakan untuk verifikasi identitas.
-                    </small>
-
-        </div>
-
-                <div class="field">
-
-                    <label>Nama Lengkap</label>
-
-                    <input
-                        type="text"
-                        name="nama"
-                        value="{{ old('nama', $pencari->nama) }}"
-                        required
-                    >
-
-                </div>
-
-                <div class="field">
-
-                    <label>Alamat</label>
-
-                    <textarea
-                        name="alamat"
-                        rows="4"
-                        required
-                    >{{ old('alamat', $pencari->alamat) }}</textarea>
-
-                </div>
-
-                <div class="field">
-
-                    <label>Nomor Telepon</label>
-
-                    <input
-                        type="text"
-                        name="no_telpon"
-                        value="{{ old('no_telpon', $pencari->no_telpon) }}"
-                        required
-                    >
-
-                </div>
-
-                <div class="field">
-
-                    <label>Email</label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        value="{{ old('email', $pencari->email) }}"
-                        required
-                    >
-
-                </div>
-
-                <div class="field">
-
-                    <label>Latitude</label>
-
-                    <input
-                        type="text"
-                        name="latitude"
-                        value="{{ old('latitude', $pencari->latitude) }}"
-                        placeholder="Contoh: -7.28167"
-                    >
-
-                </div>
-
-                <div class="field">
-
-                    <label>Longitude</label>
-
-                    <input
-                        type="text"
-                        name="longitude"
-                        value="{{ old('longitude', $pencari->longitude) }}"
-                        placeholder="Contoh: 112.7383"
-                    >
-
-                </div>
-
-                <div class="field">
-
-                    <label>Status Verifikasi Akun</label>
-
-                    @if($pencari->status_verifikasi === 'terverifikasi')
-
-                        <span class="status terverifikasi">
-                            Terverifikasi
-                        </span>
-
-                    @elseif($pencari->status_verifikasi === 'ditolak')
-
-                        <span class="status ditolak">
-                            Ditolak
-                        </span>
-
-                    @else
-
-                        <span class="status menunggu">
-                            Menunggu Verifikasi
-                        </span>
-
-                    @endif
-
-                </div>
-
-                <button
-                    type="submit"
-                    class="btn"
+                <input
+                    type="text"
+                    value="{{ $pencari->nik }}"
+                    readonly
                 >
-                    Simpan Perubahan
-                </button>
 
-            </form>
+                <small>
+                    NIK tidak dapat diubah karena digunakan sebagai
+                    identitas dan proses verifikasi.
+                </small>
 
-        </div>
+            </div>
+
+            <div class="form-group">
+
+                <label for="nama">
+                    Nama Lengkap
+                </label>
+
+                <input
+                    type="text"
+                    id="nama"
+                    name="nama"
+                    value="{{ old('nama', $pencari->nama) }}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="alamat">
+                    Alamat
+                </label>
+
+                <textarea
+                    id="alamat"
+                    name="alamat"
+                    required
+                >{{ old('alamat', $pencari->alamat) }}</textarea>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="no_telpon">
+                    Nomor Telepon
+                </label>
+
+                <input
+                    type="text"
+                    id="no_telpon"
+                    name="no_telpon"
+                    value="{{ old('no_telpon', $pencari->no_telpon) }}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ old('email', $pencari->email) }}"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="latitude">
+                    Latitude
+                </label>
+
+                <input
+                    type="number"
+                    step="any"
+                    id="latitude"
+                    name="latitude"
+                    value="{{ old('latitude', $pencari->latitude) }}"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="longitude">
+                    Longitude
+                </label>
+
+                <input
+                    type="number"
+                    step="any"
+                    id="longitude"
+                    name="longitude"
+                    value="{{ old('longitude', $pencari->longitude) }}"
+                >
+
+            </div>
+
+            <button type="submit">
+                Simpan Perubahan
+            </button>
+
+        </form>
 
     </div>
 
-</body>
+</div>
 
+</body>
 </html>

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class BuktiPenyelesaian extends Model
 {
     protected $table = 'bukti_penyelesaian';
+
     protected $primaryKey = 'id_bukti';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -20,6 +22,10 @@ class BuktiPenyelesaian extends Model
 
     public function lamaran()
     {
-        return $this->belongsTo(Lamaran::class, 'id_lamaran', 'id_lamaran');
+        return $this->belongsTo(
+            Lamaran::class,
+            'id_lamaran',
+            'id_lamaran'
+        );
     }
 }

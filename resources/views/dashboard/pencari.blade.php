@@ -1,292 +1,215 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Dashboard Pencari Kerja</title>
 
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            background: #f5f6fa;
+            margin: 0;
         }
 
-        .header {
-            background: #27ae60;
+        .navbar {
+            background: #1f3c88;
             color: white;
-            padding: 30px 40px;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header h1 {
-            margin: 0 0 8px 0;
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
         }
 
         .container {
-            width: 90%;
             max-width: 1100px;
             margin: 30px auto;
+            padding: 0 20px;
         }
 
-        .summary {
+        .welcome {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .cards {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-bottom: 25px;
         }
 
-        .summary-card {
+        .card {
             background: white;
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
         }
 
-        .summary-card h3 {
+        .card h3 {
             margin-top: 0;
-            color: #555;
         }
 
         .number {
-            font-size: 30px;
+            font-size: 32px;
             font-weight: bold;
-            color: #27ae60;
+            color: #1f3c88;
         }
 
         .menu {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
 
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .btn {
-            display: inline-block;
-            background: #27ae60;
+        .menu a {
+            background: #1f3c88;
             color: white;
-            padding: 10px 15px;
             text-decoration: none;
-            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
         }
 
         .logout {
-            background: #e74c3c;
-            color: white;
+            background: #dc3545;
             border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 5px;
             cursor: pointer;
         }
 
-        .status {
-            font-weight: bold;
+        .alert {
+            padding: 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 6px;
+            margin-bottom: 15px;
         }
 
-        .status-menunggu {
-            color: #f39c12;
-        }
-
-        .status-diterima {
-            color: #27ae60;
-        }
-
-        .status-ditolak {
-            color: #e74c3c;
+        @media (max-width: 700px) {
+            .cards,
+            .menu {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
-
 </head>
 
 <body>
 
-    <div class="header">
+<div class="navbar">
+    <div>
+        <strong>Sistem Bursa Kerja</strong>
+    </div>
 
-        <h1>Dashboard Pencari Kerja</h1>
+    <div>
+        <a href="{{ route('pencari.dashboard') }}">Dashboard</a>
+        <a href="{{ route('pencari.profil') }}">Profil</a>
 
-        <p>
-            Selamat datang,
-            {{ $pencari->nama }}
-        </p>
-
-        <form
-            action="{{ route('logout') }}"
-            method="POST"
-        >
+        <form action="{{ route('logout') }}"
+              method="POST"
+              style="display:inline;">
             @csrf
-
-            <button
-                type="submit"
-                class="logout"
-            >
+            <button type="submit" class="logout">
                 Logout
             </button>
         </form>
+    </div>
+</div>
 
+<div class="container">
+
+    @if(session('success'))
+        <div class="alert">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert" style="background:#f8d7da;color:#721c24;">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <div class="welcome">
+        <h2>
+            Selamat datang, {{ $pencari->nama }}
+        </h2>
+
+        <p>
+            Temukan pekerjaan harian yang sesuai dengan keahlianmu.
+        </p>
     </div>
 
+    <div class="cards">
 
-    <div class="container">
+        <div class="card">
+            <h3>Pekerjaan Tersedia</h3>
 
-        <div class="summary">
-
-            <div class="summary-card">
-
-                <h3>Pekerjaan Tersedia</h3>
-
-                <div class="number">
-                    {{ $jumlahPekerjaanTersedia }}
-                </div>
-
-                <p>
-                    pekerjaan sedang tersedia di sistem.
-                </p>
-
+            <div class="number">
+                {{ $jumlahPekerjaanTersedia }}
             </div>
 
-
-            <div class="summary-card">
-
-                <h3>Lamaran Terakhir</h3>
-
-                @if($lamaranTerakhir)
-
-                    <p>
-                        <strong>
-                            {{ $lamaranTerakhir->pekerjaan->nama_pekerjaan ?? '-' }}
-                        </strong>
-                    </p>
-
-                    <p>
-                        Status:
-
-                        @if($lamaranTerakhir->status_lamaran === 'menunggu')
-
-                            <span class="status status-menunggu">
-                                Menunggu
-                            </span>
-
-                        @elseif($lamaranTerakhir->status_lamaran === 'diterima')
-
-                            <span class="status status-diterima">
-                                Diterima
-                            </span>
-
-                        @else
-
-                            <span class="status status-ditolak">
-                                Ditolak
-                            </span>
-
-                        @endif
-
-                    </p>
-
-                @else
-
-                    <p>
-                        Belum ada lamaran.
-                    </p>
-
-                @endif
-
-            </div>
-
+            <p>
+                pekerjaan tersedia saat ini
+            </p>
         </div>
 
+        <div class="card">
+            <h3>Lamaran Terakhir</h3>
 
-        <h2>Menu Pencari Kerja</h2>
-
-
-        <div class="menu">
-
-
-            <div class="card">
-
-                <h3>Cari Pekerjaan</h3>
+            @if($lamaranTerakhir)
+                <strong>
+                    {{ $lamaranTerakhir->pekerjaan->nama_pekerjaan ?? '-' }}
+                </strong>
 
                 <p>
-                    Lihat pekerjaan yang cocok dengan keahlian
-                    dan lokasi kamu.
+                    Status:
+                    {{ ucfirst($lamaranTerakhir->status_lamaran) }}
                 </p>
-
-                <a
-                    href="{{ route('pencari.cari-pekerjaan') }}"
-                    class="btn"
-                >
-                    Cari Pekerjaan
-                </a>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>Lamaran Saya</h3>
-
+            @else
                 <p>
-                    Lihat pekerjaan yang sudah kamu lamar
-                    dan statusnya.
+                    Belum ada lamaran.
                 </p>
-
-                <a
-                    href="{{ route('pencari.lamaran-saya') }}"
-                    class="btn"
-                >
-                    Lihat Lamaran
-                </a>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>Keahlian Saya</h3>
-
-                <p>
-                    Ajukan keahlian dan bukti rekomendasi
-                    untuk diverifikasi Admin.
-                </p>
-
-                <a
-                    href="{{ route('keahlian_pencari_kerja.index') }}"
-                    class="btn"
-                >
-                    Kelola Keahlian
-                </a>
-
-            </div>
-
-
-            <div class="card">
-
-                <h3>Profil Saya</h3>
-
-                <p>
-                    Lihat dan ubah data pribadi serta lokasi.
-                </p>
-
-                <a
-                    href="{{ route('pencari.profil') }}"
-                    class="btn"
-                >
-                    Lihat Profil
-                </a>
-
-            </div>
-
-
+            @endif
         </div>
 
     </div>
+
+    <div class="menu">
+
+        <a href="{{ route('pencari.cari-pekerjaan') }}">
+            Cari Pekerjaan
+        </a>
+
+        <a href="{{ route('pencari.lamaran-saya') }}">
+            Lamaran Saya
+        </a>
+
+        <a href="{{ route('keahlian_pencari_kerja.index') }}">
+            Keahlian Saya
+        </a>
+
+        <a href="{{ route('pencari.profil') }}">
+            Profil
+        </a>
+
+        <a href="{{ route('pencari.notifikasi') }}">
+            Notifikasi
+        </a>
+
+    </div>
+
+</div>
 
 </body>
-
 </html>

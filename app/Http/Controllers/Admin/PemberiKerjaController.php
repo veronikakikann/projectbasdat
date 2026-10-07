@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\PemberiKerja;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class PemberiKerjaController extends Controller
 {
+    /**
+     * Menampilkan seluruh data pemberi kerja.
+     */
     public function index()
     {
         $pemberiKerja = PemberiKerja::with('admin')
@@ -18,6 +22,9 @@ class PemberiKerjaController extends Controller
         return view('pemberi_kerja.index', compact('pemberiKerja'));
     }
 
+    /**
+     * Menampilkan form tambah pemberi kerja.
+     */
     public function create()
     {
         $admins = Admin::orderBy('nama')->get();
@@ -25,18 +32,51 @@ class PemberiKerjaController extends Controller
         return view('pemberi_kerja.create', compact('admins'));
     }
 
+    /**
+     * Menyimpan data pemberi kerja baru.
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nik' => 'required|string|max:16|unique:pemberi_kerja,nik',
+            'nik' => [
+                'required',
+                'digits:16',
+                'unique:pemberi_kerja,nik',
+                'unique:pencari_kerja,nik',
+            ],
+
             'nama' => 'required|string|max:100',
+
             'alamat' => 'required|string',
-            'no_telpon' => 'required|string|max:15',
-            'email' => 'required|email|max:100|unique:pemberi_kerja,email|unique:pencari_kerja,email',
+
+            'no_telpon' => 'required|string|max:20',
+
+            'email' => [
+                'required',
+                'email',
+                'max:100',
+                'unique:pemberi_kerja,email',
+                'unique:pencari_kerja,email',
+                'unique:admin,email',
+            ],
+
             'password' => 'required|string|min:6|confirmed',
-            'status_verifikasi' => 'required|in:menunggu,terverifikasi,ditolak',
-            'status_akun' => 'nullable|in:aktif,nonaktif',
-            'id_admin' => 'nullable|exists:admin,id_admin',
+
+            'status_verifikasi' => [
+                'required',
+                'in:menunggu,terverifikasi,ditolak',
+            ],
+
+            'status_akun' => [
+                'nullable',
+                'in:aktif,nonaktif',
+            ],
+
+            'id_admin' => [
+                'nullable',
+                'exists:admin,id_admin',
+            ],
+
             'tanggal_daftar' => 'required|date',
         ]);
 
@@ -46,7 +86,7 @@ class PemberiKerjaController extends Controller
             'alamat' => $data['alamat'],
             'no_telpon' => $data['no_telpon'],
             'email' => $data['email'],
-            'password' => bcrypt($data['password']),
+            'password' => Hash::make($data['password']),
             'status_verifikasi' => $data['status_verifikasi'],
             'status_akun' => $data['status_akun'] ?? 'aktif',
             'id_admin' => $data['id_admin'] ?? null,
@@ -58,6 +98,9 @@ class PemberiKerjaController extends Controller
             ->with('success', 'Pemberi kerja berhasil ditambahkan.');
     }
 
+    /**
+     * Menampilkan form edit pemberi kerja.
+     */
     public function edit(PemberiKerja $pemberi_kerja)
     {
         $admins = Admin::orderBy('nama')->get();
@@ -68,37 +111,80 @@ class PemberiKerjaController extends Controller
         ]);
     }
 
+    /**
+     * Memperbarui data pemberi kerja.
+     *
+     * NIK TIDAK DIUBAH karena merupakan identitas pemilik akun.
+     */
     public function update(
         Request $request,
         PemberiKerja $pemberi_kerja
     ) {
         $data = $request->validate([
-            'nik' => 'required|string|max:16|unique:pemberi_kerja,nik,' .
-                $pemberi_kerja->id_pemberi . ',id_pemberi',
             'nama' => 'required|string|max:100',
+
             'alamat' => 'required|string',
-            'no_telpon' => 'required|string|max:15',
-            'email' => 'required|email|max:100|unique:pemberi_kerja,email,' .
-                $pemberi_kerja->id_pemberi . ',id_pemberi',
+
+            'no_telpon' => 'required|string|max:20',
+
+            'email' => [
+                'required',
+                'email',
+                'max:100',
+                'unique:pemberi_kerja,email,' .
+                    $pemberi_kerja->id_pemberi . ',id_pemberi',
+                'unique:pencari_kerja,email',
+                'unique:admin,email',
+            ],
+
             'password' => 'nullable|string|min:6|confirmed',
-            'status_verifikasi' => 'required|in:menunggu,terverifikasi,ditolak',
-            'status_akun' => 'required|in:aktif,nonaktif',
-            'id_admin' => 'nullable|exists:admin,id_admin',
+
+            'status_verifikasi' => [
+                'required',
+                'in:menunggu,terverifikasi,ditolak',
+            ],
+
+            'status_akun' => [
+                'required',
+                'in:aktif,nonaktif',
+            ],
+
+            'id_admin' => [
+                'nullable',
+                'exists:admin,id_admin',
+            ],
+
             'tanggal_daftar' => 'required|date',
         ]);
 
-        $pemberi_kerja->nik = $data['nik'];
-        $pemberi_kerja->nama = $data['nama'];
-        $pemberi_kerja->alamat = $data['alamat'];
-        $pemberi_kerja->no_telpon = $data['no_telpon'];
-        $pemberi_kerja->email = $data['email'];
-        $pemberi_kerja->status_verifikasi = $data['status_verifikasi'];
-        $pemberi_kerja->status_akun = $data['status_akun'];
-        $pemberi_kerja->id_admin = $data['id_admin'] ?? null;
-        $pemberi_kerja->tanggal_daftar = $data['tanggal_daftar'];
+        // =========================================================
+        // NIK SENGAJA TIDAK DIUBAH
+        // =========================================================
 
+        $pemberi_kerja->nama = $data['nama'];
+
+        $pemberi_kerja->alamat = $data['alamat'];
+
+        $pemberi_kerja->no_telpon = $data['no_telpon'];
+
+        $pemberi_kerja->email = $data['email'];
+
+        $pemberi_kerja->status_verifikasi =
+            $data['status_verifikasi'];
+
+        $pemberi_kerja->status_akun =
+            $data['status_akun'];
+
+        $pemberi_kerja->id_admin =
+            $data['id_admin'] ?? null;
+
+        $pemberi_kerja->tanggal_daftar =
+            $data['tanggal_daftar'];
+
+        // Password hanya diubah jika Admin mengisi password baru.
         if (!empty($data['password'])) {
-            $pemberi_kerja->password = bcrypt($data['password']);
+            $pemberi_kerja->password =
+                Hash::make($data['password']);
         }
 
         $pemberi_kerja->save();
@@ -108,6 +194,9 @@ class PemberiKerjaController extends Controller
             ->with('success', 'Data pemberi kerja berhasil diperbarui.');
     }
 
+    /**
+     * Menghapus data pemberi kerja.
+     */
     public function destroy(PemberiKerja $pemberi_kerja)
     {
         $pemberi_kerja->delete();
