@@ -77,7 +77,7 @@
                 href="{{ route(
                     'pemberi.bukti.file',
                     [
-                        $lamaran->id_lamaran,
+                        $lamaran->buktiPenyelesaian->id_bukti,
                         'kerja'
                     ]
                 ) }}"
@@ -105,7 +105,7 @@
                     href="{{ route(
                         'pemberi.bukti.file',
                         [
-                            $lamaran->id_lamaran,
+                            $lamaran->buktiPenyelesaian->id_bukti,
                             'bayar'
                         ]
                     ) }}"
@@ -166,7 +166,7 @@
                             id="catatan_bayar_{{ $lamaran->id_lamaran }}"
                             name="catatan_bayar"
                             rows="4"
-                            maxlength="500"
+                            maxlength="1000"
                             placeholder="Tambahkan catatan pembayaran jika diperlukan..."
                         >{{ old('catatan_bayar') }}</textarea>
                     </div>

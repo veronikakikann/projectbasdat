@@ -65,7 +65,7 @@
                                 method="POST"
                             >
                                 @csrf
-                                @method('PUT')
+                                @method('PATCH')
 
                                 <input
                                     type="hidden"
@@ -85,7 +85,7 @@
                                 method="POST"
                             >
                                 @csrf
-                                @method('PUT')
+                                @method('PATCH')
 
                                 <input
                                     type="hidden"

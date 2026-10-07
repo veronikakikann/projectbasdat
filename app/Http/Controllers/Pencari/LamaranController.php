@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Pencari;
 use App\Http\Controllers\Controller;
 use App\Models\Lamaran;
 use App\Models\Notifikasi;
-use App\Models\PencariKerja;
 use App\Models\Pekerjaan;
+use App\Models\PencariKerja;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +20,8 @@ class LamaranController extends Controller
         $lamaran = Lamaran::with([
             'pekerjaan.keahlian',
             'pekerjaan.pemberiKerja',
+            'buktiPenyelesaian',
+            'rating',
         ])
             ->where(
                 'id_pencari',
@@ -42,7 +45,7 @@ class LamaranController extends Controller
         $idPencari = session('user_id');
 
         if (
-            !PencariKerja::where(
+            ! PencariKerja::where(
                 'id_pencari',
                 $idPencari
             )->exists()
@@ -104,24 +107,20 @@ class LamaranController extends Controller
                 }
 
                 Lamaran::create([
-                    'id_pekerjaan' =>
-                        $pekerjaan->id_pekerjaan,
+                    'id_pekerjaan' => $pekerjaan->id_pekerjaan,
 
-                    'id_pencari' =>
-                        $idPencari,
+                    'id_pencari' => $idPencari,
 
-                    'status_lamaran' =>
-                        'menunggu',
+                    'status_lamaran' => 'menunggu',
 
-                    'tanggal_submit' =>
-                        now(),
+                    'tanggal_submit' => now(),
                 ]);
 
                 Notifikasi::kirim(
                     $pekerjaan->id_pemberi,
                     'pemberi_kerja',
-                    'Ada pelamar baru untuk pekerjaan "' .
-                    $pekerjaan->nama_pekerjaan .
+                    'Ada pelamar baru untuk pekerjaan "'.
+                    $pekerjaan->nama_pekerjaan.
                     '".'
                 );
 
@@ -142,29 +141,21 @@ class LamaranController extends Controller
             );
     }
 
-    public function batalkan(Lamaran $lamaran)
+    public function batalkan(Lamaran $lamaran): RedirectResponse
     {
-        abort_unless(
-            (int) $lamaran->id_pencari
-                === (int) session('user_id'),
-            403
-        );
+        abort_unless((int) $lamaran->id_pencari === (int) session('user_id'), 403);
+        $error = DB::transaction(function () use ($lamaran): ?string {
+            Pekerjaan::lockForUpdate()->findOrFail($lamaran->id_pekerjaan);
+            $current = Lamaran::lockForUpdate()->findOrFail($lamaran->id_lamaran);
+            abort_unless((int) $current->id_pencari === (int) session('user_id'), 403);
+            if ($current->status_lamaran !== 'menunggu') {
+                return 'Lamaran yang sudah diproses tidak dapat dibatalkan.';
+            }
+            $current->delete();
 
-        if (
-            $lamaran->status_lamaran
-            !== 'menunggu'
-        ) {
-            return back()->with(
-                'error',
-                'Lamaran yang sudah diproses tidak dapat dibatalkan.'
-            );
-        }
+            return null;
+        });
 
-        $lamaran->delete();
-
-        return back()->with(
-            'success',
-            'Lamaran berhasil dibatalkan.'
-        );
+        return $error ? back()->with('error', $error) : back()->with('success', 'Lamaran berhasil dibatalkan.');
     }
 }

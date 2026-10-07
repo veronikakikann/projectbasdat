@@ -214,7 +214,14 @@
                         </td>
 
                         <td>
-
+                            @if($item->buktiPenyelesaian)
+                                @if($item->buktiPenyelesaian->foto_bukti_kerja)
+                                    <a href="{{ route('dokumen.bukti', [$item->buktiPenyelesaian, 'kerja']) }}">Lihat bukti kerja</a>
+                                @endif
+                                @if($item->buktiPenyelesaian->foto_bukti_bayar)
+                                    <a href="{{ route('dokumen.bukti', [$item->buktiPenyelesaian, 'bayar']) }}">Lihat bukti bayar</a>
+                                @endif
+                            @endif
                             @if($item->status_lamaran === 'menunggu')
 
                                 <form
@@ -245,7 +252,7 @@
                                     Beri Rating
                                 </a>
 
-                            @elseif($item->status_lamaran === 'diterima')
+                            @elseif($item->status_lamaran === 'diterima' && $item->pekerjaan->status_pekerjaan === 'sedang_dikerjakan')
 
                                 <a
                                     href="{{ route('pencari.bukti.create', $item->id_lamaran) }}"

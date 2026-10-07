@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Pemberi;
 
 use App\Http\Controllers\Controller;
-use App\Models\BuktiPenyelesaian;
 use App\Models\Keahlian;
 use App\Models\Lamaran;
 use App\Models\Notifikasi;
@@ -11,6 +10,7 @@ use App\Models\Pekerjaan;
 use App\Models\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PekerjaanController extends Controller
 {
@@ -38,7 +38,7 @@ class PekerjaanController extends Controller
 
         return view('pemberi.pekerjaan.index', [
             'pekerjaan' => $query->get(),
-            'status'    => $status,
+            'status' => $status,
         ]);
     }
 
@@ -53,14 +53,12 @@ class PekerjaanController extends Controller
 
         $jumlahPelamar = $pekerjaan->lamaran()->count();
 
-        $pekerja = Lamaran::with('pencariKerja')
+        $pekerja = Lamaran::with(['pencariKerja', 'buktiPenyelesaian'])
             ->where('id_pekerjaan', $pekerjaan->id_pekerjaan)
             ->whereIn('status_lamaran', ['diterima', 'selesai'])
             ->get();
 
         $idLamaran = $pekerja->pluck('id_lamaran');
-
-        $bukti = BuktiPenyelesaian::whereIn('id_lamaran', $idLamaran)->first();
 
         // rating yang SAYA berikan ke tiap pekerja, di-index per id_lamaran
         $ratingKu = Rating::where('arah_rating', 'pemberi_ke_pekerja')
@@ -69,7 +67,7 @@ class PekerjaanController extends Controller
             ->get()
             ->keyBy('id_lamaran');
 
-        return view('pemberi.pekerjaan.show', compact('pekerjaan', 'jumlahPelamar', 'pekerja', 'bukti', 'ratingKu'));
+        return view('pemberi.pekerjaan.show', compact('pekerjaan', 'jumlahPelamar', 'pekerja', 'ratingKu'));
     }
 
     // ---------------------------------------------------------------
@@ -88,7 +86,7 @@ class PekerjaanController extends Controller
 
         // id_pemberi, status awal, dan tanggal_posting TIDAK diambil dari form
         Pekerjaan::create($data + [
-            'id_pemberi'       => session('user_id'),
+            'id_pemberi' => session('user_id'),
             'status_pekerjaan' => 'tersedia',
         ]);
 
@@ -108,9 +106,9 @@ class PekerjaanController extends Controller
         $keahlian = Keahlian::orderBy('nama_keahlian')->get();
 
         return view('pemberi.pekerjaan.edit', [
-            'pekerjaan'      => $pekerjaan,
-            'keahlian'       => $keahlian,
-            'sudahDiterima'  => $pekerjaan->jumlahDiterima(),
+            'pekerjaan' => $pekerjaan,
+            'keahlian' => $keahlian,
+            'sudahDiterima' => $pekerjaan->jumlahDiterima(),
         ]);
     }
 
@@ -118,37 +116,48 @@ class PekerjaanController extends Controller
     {
         $this->milik($pekerjaan);
 
-        if ($pekerjaan->status_pekerjaan !== 'tersedia') {
-            return redirect()->route('pemberi.pekerjaan.show', $pekerjaan)
-                ->with('error', 'Lowongan hanya bisa diedit saat statusnya Aktif.');
-        }
+        $data = $request->validate($this->rules());
+        $error = DB::transaction(function () use ($pekerjaan, $data): ?string {
+            $current = Pekerjaan::lockForUpdate()->findOrFail($pekerjaan->id_pekerjaan);
+            $this->milik($current);
+            if ($current->status_pekerjaan !== 'tersedia') {
+                return 'Lowongan hanya bisa diedit saat statusnya Aktif.';
+            }
+            $accepted = $current->jumlahDiterima();
+            if ($data['jumlah_pekerja'] < $accepted) {
+                throw ValidationException::withMessages([
+                    'jumlah_pekerja' => 'Kuota tidak boleh lebih kecil dari jumlah pekerja yang diterima.',
+                ]);
+            }
+            $current->update($data);
+            if ($accepted === (int) $current->jumlah_pekerja) {
+                $current->update(['status_pekerjaan' => 'penuh']);
+                $current->tolakPelamarMenunggu('kuota pekerjaan sudah terpenuhi');
+            }
 
-        // Jumlah pekerja tidak boleh lebih kecil/sama dengan yang sudah diterima
-        // (kalau kuota sudah cukup, pakai tombol "Mulai Pekerjaan")
-        $minimal = max(1, $pekerjaan->jumlahDiterima() + 1);
-
-        $rules = $this->rules();
-        $rules['jumlah_pekerja'] = 'required|integer|min:' . $minimal . '|max:100';
-
-        $pekerjaan->update($request->validate($rules));
+            return null;
+        });
 
         return redirect()->route('pemberi.pekerjaan.show', $pekerjaan)
-            ->with('success', 'Lowongan diperbarui.');
+            ->with($error ? 'error' : 'success', $error ?? 'Lowongan diperbarui.');
     }
 
     public function destroy(Pekerjaan $pekerjaan)
     {
         $this->milik($pekerjaan);
+        $error = DB::transaction(function () use ($pekerjaan): ?string {
+            $current = Pekerjaan::lockForUpdate()->findOrFail($pekerjaan->id_pekerjaan);
+            $this->milik($current);
+            if ($current->lamaran()->exists()) {
+                return 'Lowongan ini sudah punya pelamar, jadi tidak bisa dihapus.';
+            }
+            $current->delete();
 
-        // Lowongan yang sudah punya pelamar tidak dihapus (menjaga riwayat). Pakai "Tutup" saja.
-        if ($pekerjaan->lamaran()->exists()) {
-            return back()->with('error', 'Lowongan ini sudah punya pelamar, jadi tidak bisa dihapus.');
-        }
+            return null;
+        });
 
-        $pekerjaan->delete();
-
-        return redirect()->route('pemberi.pekerjaan.index')
-            ->with('success', 'Lowongan dihapus.');
+        return $error ? back()->with('error', $error)
+            : redirect()->route('pemberi.pekerjaan.index')->with('success', 'Lowongan dihapus.');
     }
 
     // ---------------------------------------------------------------
@@ -164,7 +173,7 @@ class PekerjaanController extends Controller
         $error = DB::transaction(function () use ($pekerjaan) {
             $p = Pekerjaan::lockForUpdate()->findOrFail($pekerjaan->id_pekerjaan);
 
-            if (!in_array($p->status_pekerjaan, ['tersedia', 'penuh'], true)) {
+            if (! in_array($p->status_pekerjaan, ['tersedia', 'penuh'], true)) {
                 return 'Pekerjaan tidak bisa dimulai pada status ini.';
             }
 
@@ -181,7 +190,7 @@ class PekerjaanController extends Controller
                 Notifikasi::kirim(
                     $l->id_pencari,
                     'pencari_kerja',
-                    'Pekerjaan "' . $p->nama_pekerjaan . '" sudah dimulai. Selamat bekerja!'
+                    'Pekerjaan "'.$p->nama_pekerjaan.'" sudah dimulai. Selamat bekerja!'
                 );
             }
 
@@ -201,7 +210,7 @@ class PekerjaanController extends Controller
         $error = DB::transaction(function () use ($pekerjaan) {
             $p = Pekerjaan::lockForUpdate()->findOrFail($pekerjaan->id_pekerjaan);
 
-            if (!in_array($p->status_pekerjaan, ['tersedia', 'penuh'], true)) {
+            if (! in_array($p->status_pekerjaan, ['tersedia', 'penuh'], true)) {
                 return 'Lowongan tidak bisa ditutup pada status ini.';
             }
 
@@ -225,16 +234,16 @@ class PekerjaanController extends Controller
     private function rules(): array
     {
         return [
-            'nama_pekerjaan'     => 'required|string|max:150',
-            'id_keahlian'        => 'required|exists:keahlian,id_keahlian',
-            'deskripsi'          => 'required|string|max:2000',
-            'lokasi'             => 'required|string|max:500',
+            'nama_pekerjaan' => 'required|string|max:150',
+            'id_keahlian' => 'required|exists:keahlian,id_keahlian',
+            'deskripsi' => 'required|string|max:2000',
+            'lokasi' => 'required|string|max:500',
             'tanggal_pengerjaan' => 'required|date|after_or_equal:today',
-            'jumlah_pekerja'     => 'required|integer|min:1|max:100',
-            'upah'               => 'required|numeric|min:0|max:9999999999',
-            'persyaratan'        => 'nullable|string|max:2000',
-            'latitude'           => 'nullable|numeric|between:-90,90',
-            'longitude'          => 'nullable|numeric|between:-180,180',
+            'jumlah_pekerja' => 'required|integer|min:1|max:100',
+            'upah' => 'required|numeric|min:0|max:9999999999',
+            'persyaratan' => 'nullable|string|max:2000',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ];
     }
 

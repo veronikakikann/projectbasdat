@@ -18,7 +18,7 @@ class LoginController extends Controller
         $request->validate([
             'role' => 'required|in:admin,pemberi_kerja,pencari_kerja',
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
         ]);
 
         $role = $request->role;
@@ -68,7 +68,7 @@ class LoginController extends Controller
                 // Cek status verifikasi admin
                 if ($user->status_verifikasi !== 'terverifikasi') {
                     return back()
-                        ->withInput()
+                        ->withInput($request->except('password'))
                         ->with(
                             'error',
                             'Akun belum diverifikasi admin.'
@@ -78,7 +78,7 @@ class LoginController extends Controller
                 // Cek status akun
                 if ($user->status_akun !== 'aktif') {
                     return back()
-                        ->withInput()
+                        ->withInput($request->except('password'))
                         ->with(
                             'error',
                             'Akun sedang dinonaktifkan.'
@@ -117,7 +117,7 @@ class LoginController extends Controller
                 // Cek status verifikasi admin
                 if ($user->status_verifikasi !== 'terverifikasi') {
                     return back()
-                        ->withInput()
+                        ->withInput($request->except('password'))
                         ->with(
                             'error',
                             'Akun belum diverifikasi admin.'
@@ -127,7 +127,7 @@ class LoginController extends Controller
                 // Cek status akun
                 if ($user->status_akun !== 'aktif') {
                     return back()
-                        ->withInput()
+                        ->withInput($request->except('password'))
                         ->with(
                             'error',
                             'Akun sedang dinonaktifkan.'
@@ -153,7 +153,7 @@ class LoginController extends Controller
         // LOGIN GAGAL
         // =========================================================
         return back()
-            ->withInput()
+            ->withInput($request->except('password'))
             ->with(
                 'error',
                 'Email, password, atau role tidak sesuai.'
@@ -162,7 +162,8 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        $request->session()->flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()
             ->route('login');

@@ -149,6 +149,7 @@
                 </td>
 
                 <td>
+                    @if($d->file_surat_rekomendasi)<a href="{{ route('dokumen.keahlian', $d->id_keahlian_pencari) }}">Surat rekomendasi</a>@endif
                     {{ $d->deskripsi_keahlian }}
                 </td>
 

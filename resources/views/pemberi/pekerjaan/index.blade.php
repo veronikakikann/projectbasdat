@@ -74,9 +74,12 @@
 
                     <td>
 
+                        <a href="{{ route('pemberi.pekerjaan.show', $p) }}">Detail / Pelamar</a>
+                        @if($p->status_pekerjaan === 'tersedia')
                         <a href="{{ route('pemberi.pekerjaan.edit', $p->id_pekerjaan) }}">
                             Edit
                         </a>
+                        @endif
 
                         <br><br>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PrivateDocuments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -54,7 +55,7 @@ class RegisterController extends Controller
             'no_telpon' => [
                 'required',
                 'string',
-                'max:20',
+                'max:15',
             ],
 
             'email' => [
@@ -88,7 +89,7 @@ class RegisterController extends Controller
 
         if ($nikSudahAda) {
             return back()
-                ->withInput()
+                ->withInput($request->except(['password', 'password_confirmation']))
                 ->with(
                     'error',
                     'NIK sudah terdaftar.'
@@ -116,7 +117,7 @@ class RegisterController extends Controller
 
         if ($emailSudahAda) {
             return back()
-                ->withInput()
+                ->withInput($request->except(['password', 'password_confirmation']))
                 ->with(
                     'error',
                     'Email sudah terdaftar.'
@@ -131,7 +132,7 @@ class RegisterController extends Controller
 
         $pathKtp = $request
             ->file('file_ktp')
-            ->store('ktp', 'public');
+            ->store('ktp', 'local');
 
         /*
         |--------------------------------------------------------------------------
@@ -198,9 +199,11 @@ class RegisterController extends Controller
                 }
             });
         } catch (\Throwable $e) {
+            PrivateDocuments::deleteUnused($pathKtp);
+            report($e);
 
             return back()
-                ->withInput()
+                ->withInput($request->except(['password', 'password_confirmation']))
                 ->with(
                     'error',
                     'Registrasi gagal. Silakan coba lagi.'

@@ -73,7 +73,7 @@
                         <td>
                             @if($item->file_surat_rekomendasi)
                                 <a
-                                    href="{{ asset('storage/' . $item->file_surat_rekomendasi) }}"
+                                    href="{{ route('dokumen.keahlian', $item) }}"
                                     target="_blank"
                                 >
                                     Lihat File

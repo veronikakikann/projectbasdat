@@ -2,22 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Pekerjaan extends Model
 {
+    use HasFactory;
+
     protected $table = 'pekerjaan';
+
     protected $primaryKey = 'id_pekerjaan';
+
     public $timestamps = false;
 
     // Label status untuk ditampilkan ke user
     // Nilai asli di database tetap tidak berubah.
     public const LABEL_STATUS = [
-        'tersedia'          => 'Aktif',
-        'penuh'             => 'Penuh',
+        'tersedia' => 'Aktif',
+        'penuh' => 'Penuh',
         'sedang_dikerjakan' => 'Sedang dikerjakan',
-        'selesai'           => 'Selesai',
-        'ditutup'           => 'Ditutup',
+        'selesai' => 'Selesai',
+        'ditutup' => 'Ditutup',
     ];
 
     protected $fillable = [
@@ -87,16 +92,16 @@ class Pekerjaan extends Model
 
         foreach ($menunggu as $lamaran) {
             $lamaran->update([
-                'status_lamaran' => 'ditolak'
+                'status_lamaran' => 'ditolak',
             ]);
 
             Notifikasi::kirim(
                 $lamaran->id_pencari,
                 'pencari_kerja',
-                'Lamaranmu untuk "' .
-                $this->nama_pekerjaan .
-                '" ditolak karena ' .
-                $alasan .
+                'Lamaranmu untuk "'.
+                $this->nama_pekerjaan.
+                '" ditolak karena '.
+                $alasan.
                 '.'
             );
         }

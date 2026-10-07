@@ -87,14 +87,7 @@
 <h2>Statistik</h2>
 
 @if(isset($stat))
-    <table border="1" cellpadding="8" cellspacing="0">
-        @foreach($stat as $key => $value)
-            <tr>
-                <th>{{ ucwords(str_replace('_', ' ', $key)) }}</th>
-                <td>{{ $value }}</td>
-            </tr>
-        @endforeach
-    </table>
+<p>Rata-rata: {{ number_format($stat->rata ?? 0, 1) }}/5 · {{ $stat->jumlah ?? 0 }} ulasan</p>
 @endif
 
 <hr>
@@ -107,7 +100,7 @@
         <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
 
             <strong>
-                {{ $rating->pemberiKerja->nama ?? 'Pemberi Kerja' }}
+                {{ $rating->lamaran->pencariKerja->nama ?? 'Pekerja' }}
             </strong>
 
             <p>
@@ -117,7 +110,7 @@
 
             <p>
                 <strong>Komentar:</strong><br>
-                {{ $rating->komentar ?? '-' }}
+                {{ $rating->kategori_komentar ?? '-' }}
             </p>
 
             <small>

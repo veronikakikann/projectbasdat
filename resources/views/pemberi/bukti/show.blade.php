@@ -66,7 +66,7 @@
         href="{{ route(
             'pemberi.bukti.file',
             [
-                $bukti->lamaran->id_lamaran,
+                $bukti->id_bukti,
                 'kerja'
             ]
         ) }}"
@@ -93,7 +93,7 @@
         href="{{ route(
             'pemberi.bukti.file',
             [
-                $bukti->lamaran->id_lamaran,
+                $bukti->id_bukti,
                 'bayar'
             ]
         ) }}"

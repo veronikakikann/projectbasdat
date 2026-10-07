@@ -207,7 +207,7 @@
             <h3>Keahlian Pencari Kerja</h3>
 
             <a
-                href="{{ route('keahlian_pencari_kerja.index') }}"
+                href="{{ route('admin.verifikasi-keahlian') }}"
                 class="btn"
             >
                 Kelola
@@ -221,7 +221,7 @@
             <h3>Data Pekerjaan</h3>
 
             <a
-                href="{{ route('pekerjaan.index') }}"
+                href="{{ route('admin.transaksi.index', 'pekerjaan') }}"
                 class="btn"
             >
                 Kelola
@@ -235,7 +235,7 @@
             <h3>Data Lamaran</h3>
 
             <a
-                href="{{ route('lamaran.index') }}"
+                href="{{ route('admin.transaksi.index', 'lamaran') }}"
                 class="btn"
             >
                 Kelola
@@ -249,7 +249,7 @@
             <h3>Bukti Penyelesaian</h3>
 
             <a
-                href="{{ route('bukti_penyelesaian.index') }}"
+                href="{{ route('admin.transaksi.index', 'bukti') }}"
                 class="btn"
             >
                 Kelola
@@ -263,7 +263,7 @@
             <h3>Data Rating</h3>
 
             <a
-                href="{{ route('rating.index') }}"
+                href="{{ route('admin.transaksi.index', 'rating') }}"
                 class="btn"
             >
                 Kelola
@@ -277,7 +277,7 @@
             <h3>Data Notifikasi</h3>
 
             <a
-                href="{{ route('notifikasi.index') }}"
+                href="{{ route('admin.transaksi.index', 'notifikasi') }}"
                 class="btn"
             >
                 Kelola

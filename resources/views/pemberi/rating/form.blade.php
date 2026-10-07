@@ -58,7 +58,7 @@
     action="{{
         $rating
             ? route('pemberi.rating.update', $rating->id_rating)
-            : route('pemberi.rating.store')
+            : route('pemberi.rating.store', $lamaran->id_lamaran)
     }}"
     method="POST"
 >
@@ -112,19 +112,19 @@
     <br>
 
     <div>
-        <label for="komentar">
+        <label for="kategori_komentar">
             <strong>Komentar</strong>
         </label>
 
         <br>
 
         <textarea
-            id="komentar"
-            name="komentar"
+            id="kategori_komentar"
+            name="kategori_komentar"
             rows="5"
             maxlength="500"
-            placeholder="Tuliskan komentar..."
-        >{{ old('komentar', $rating->komentar ?? '') }}</textarea>
+            placeholder="Tuliskan kategori_komentar..."
+        >{{ old('kategori_komentar', $rating->kategori_komentar ?? '') }}</textarea>
     </div>
 
     <br>

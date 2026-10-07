@@ -99,7 +99,7 @@
             @if($row->file_surat_rekomendasi)
 
                 <p>
-                    File sebelumnya sudah tersedia.
+                    File sebelumnya: <a href="{{ route('dokumen.keahlian', $row) }}">Lihat dokumen</a>
                 </p>
 
             @endif

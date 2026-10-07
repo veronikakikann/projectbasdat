@@ -37,7 +37,7 @@
                 </strong>
 
                 <p>
-                    {{ $n->pesan ?? '-' }}
+                    {{ $n->isi_pesan ?? '-' }}
                 </p>
 
                 <small>

@@ -3,149 +3,87 @@
 namespace App\Http\Controllers\Pencari;
 
 use App\Http\Controllers\Controller;
+use App\Models\BuktiPenyelesaian;
 use App\Models\Lamaran;
 use App\Models\Notifikasi;
-use App\Models\BuktiPenyelesaian;
+use App\Models\Pekerjaan;
+use App\Support\PrivateDocuments;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class BuktiController extends Controller
 {
-    /**
-     * Form upload bukti pengerjaan.
-     */
-    public function create(Lamaran $lamaran)
+    public function create(Lamaran $lamaran): View|RedirectResponse
     {
-        $idPencari = session('user_id');
-
-        // Pastikan lamaran milik pencari yang sedang login
-        if ($lamaran->id_pencari != $idPencari) {
-            abort(403);
+        $this->milik($lamaran);
+        if ($lamaran->status_lamaran !== 'diterima'
+            || $lamaran->pekerjaan->status_pekerjaan !== 'sedang_dikerjakan') {
+            return back()->with('error', 'Bukti hanya dapat dikirim saat pekerjaan sedang dikerjakan.');
         }
 
-        // Bukti pengerjaan hanya boleh dikirim
-        // jika lamaran sudah diterima
-        if ($lamaran->status_lamaran !== 'diterima') {
-            return back()->with(
-                'error',
-                'Bukti pengerjaan hanya dapat dikirim untuk lamaran yang diterima.'
-            );
-        }
-
-        $pekerjaan = $lamaran->pekerjaan;
-
-        // Pekerjaan harus sedang dikerjakan
-        if (!$pekerjaan || $pekerjaan->status_pekerjaan !== 'sedang_dikerjakan') {
-            return back()->with(
-                'error',
-                'Pekerjaan belum berada dalam status sedang dikerjakan.'
-            );
-        }
-
-        // Ambil bukti yang sudah ada
-        $bukti = BuktiPenyelesaian::where(
-            'id_lamaran',
-            $lamaran->id_lamaran
-        )->first();
-
-        return view(
-            'pencari.bukti.create',
-            compact('lamaran', 'pekerjaan', 'bukti')
-        );
+        return view('pencari.bukti.create', [
+            'lamaran' => $lamaran,
+            'pekerjaan' => $lamaran->pekerjaan,
+            'bukti' => $lamaran->buktiPenyelesaian,
+        ]);
     }
 
-
-    /**
-     * Simpan bukti pengerjaan dari Pencari Kerja.
-     */
-    public function store(Request $request, Lamaran $lamaran)
+    public function store(Request $request, Lamaran $lamaran): RedirectResponse
     {
-        $idPencari = session('user_id');
-
-        // Pastikan lamaran milik pencari yang login
-        if ($lamaran->id_pencari != $idPencari) {
-            abort(403);
-        }
-
-        if ($lamaran->status_lamaran !== 'diterima') {
-            return back()->with(
-                'error',
-                'Lamaran belum diterima.'
-            );
-        }
-
-        $pekerjaan = $lamaran->pekerjaan;
-
-        if (!$pekerjaan || $pekerjaan->status_pekerjaan !== 'sedang_dikerjakan') {
-            return back()->with(
-                'error',
-                'Pekerjaan belum sedang dikerjakan.'
-            );
-        }
-
-        $request->validate([
-            'foto_bukti_kerja' => [
-                'required',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ],
-            'catatan' => [
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-        ], [
-            'foto_bukti_kerja.required' => 'Bukti pengerjaan wajib diupload.',
-            'foto_bukti_kerja.image' => 'File bukti pengerjaan harus berupa gambar.',
-            'foto_bukti_kerja.mimes' => 'Format bukti harus JPG, JPEG, atau PNG.',
-            'foto_bukti_kerja.max' => 'Ukuran bukti maksimal 2 MB.',
+        $this->milik($lamaran);
+        $data = $request->validate([
+            'foto_bukti_kerja' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'catatan' => 'nullable|string|max:1000',
         ]);
+        $newPath = null;
+        $oldPath = null;
 
-        $bukti = BuktiPenyelesaian::where(
-            'id_lamaran',
-            $lamaran->id_lamaran
-        )->first();
+        try {
+            DB::transaction(function () use ($lamaran, $request, $data, &$newPath, &$oldPath): void {
+                $pekerjaan = Pekerjaan::lockForUpdate()->findOrFail($lamaran->id_pekerjaan);
+                $current = Lamaran::lockForUpdate()->findOrFail($lamaran->id_lamaran);
+                $this->milik($current);
+                if ($current->status_lamaran !== 'diterima'
+                    || $pekerjaan->status_pekerjaan !== 'sedang_dikerjakan') {
+                    throw ValidationException::withMessages([
+                        'foto_bukti_kerja' => 'Bukti hanya dapat dikirim saat pekerjaan sedang dikerjakan.',
+                    ]);
+                }
 
-        // Jika sebelumnya sudah ada bukti kerja,
-        // hapus file lama sebelum diganti
-        if ($bukti && $bukti->foto_bukti_kerja) {
-            Storage::disk('public')->delete($bukti->foto_bukti_kerja);
+                $bukti = BuktiPenyelesaian::where('id_lamaran', $current->id_lamaran)
+                    ->lockForUpdate()->first();
+                if ($bukti?->foto_bukti_bayar) {
+                    throw ValidationException::withMessages([
+                        'foto_bukti_kerja' => 'Bukti yang sudah dibayar tidak dapat diubah.',
+                    ]);
+                }
+                $oldPath = $bukti?->foto_bukti_kerja;
+                $newPath = PrivateDocuments::store($request->file('foto_bukti_kerja'), 'bukti/pengerjaan');
+                BuktiPenyelesaian::updateOrCreate(['id_lamaran' => $current->id_lamaran], [
+                    'foto_bukti_kerja' => $newPath,
+                    'catatan' => $data['catatan'] ?? null,
+                    'tanggal_upload' => now(),
+                ]);
+                Notifikasi::kirim($pekerjaan->id_pemberi, 'pemberi_kerja',
+                    'Bukti pengerjaan untuk "'.$pekerjaan->nama_pekerjaan.'" telah dikirim. Silakan periksa dan lakukan pembayaran.');
+            });
+        } catch (Throwable $exception) {
+            PrivateDocuments::deleteUnused($newPath);
+            throw $exception;
         }
 
-        $path = $request->file('foto_bukti_kerja')
-            ->store('bukti/pengerjaan', 'public');
+        PrivateDocuments::deleteUnused($oldPath);
 
-        if (!$bukti) {
-            $bukti = new BuktiPenyelesaian();
-            $bukti->id_lamaran = $lamaran->id_lamaran;
-        }
+        return redirect()->route('pencari.lamaran-saya')
+            ->with('success', 'Bukti pengerjaan berhasil dikirim. Silakan menunggu pembayaran.');
+    }
 
-        $bukti->foto_bukti_kerja = $path;
-        $bukti->catatan = $request->catatan;
-        $bukti->tanggal_upload = now();
-
-        // Bukti bayar tetap NULL sampai Pemberi melakukan pembayaran
-        $bukti->save();
-
-        // Jangan ubah lamaran menjadi selesai di sini.
-        // Karena Pemberi masih harus melakukan pembayaran.
-
-        // Beri tahu Pemberi Kerja
-        Notifikasi::kirim(
-            'pemberi_kerja',
-            $pekerjaan->id_pemberi,
-            'Bukti pengerjaan telah dikirim',
-            'Pencari Kerja telah mengunggah bukti pengerjaan untuk pekerjaan "' .
-            $pekerjaan->deskripsi .
-            '". Silakan periksa bukti dan lakukan pembayaran.'
-        );
-
-        return redirect()
-            ->route('pencari.lamaran-saya')
-            ->with(
-                'success',
-                'Bukti pengerjaan berhasil dikirim. Silakan menunggu konfirmasi dan pembayaran dari Pemberi Kerja.'
-            );
+    private function milik(Lamaran $lamaran): void
+    {
+        abort_unless((int) $lamaran->id_pencari === (int) session('user_id'), 403);
     }
 }

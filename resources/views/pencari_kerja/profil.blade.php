@@ -254,6 +254,15 @@
 
             </div>
 
+            <div class="form-group">
+                <label for="password">Password baru (opsional)</label>
+                <input type="password" id="password" name="password" minlength="6" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="password_confirmation">Konfirmasi password</label>
+                <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password">
+            </div>
+
             <button type="submit">
                 Simpan Perubahan
             </button>

@@ -58,7 +58,7 @@
         >
 
             <div>
-                {{ $n->pesan }}
+                {{ $n->isi_pesan }}
             </div>
 
             <div class="tanggal">

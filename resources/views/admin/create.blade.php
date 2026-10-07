@@ -46,6 +46,9 @@
         >
         <br><br>
 
+        <label>Konfirmasi Password:</label><br>
+        <input type="password" name="password_confirmation" autocomplete="new-password"><br><br>
+
         <label>Tanggal Bergabung:</label><br>
         <input
             type="date"

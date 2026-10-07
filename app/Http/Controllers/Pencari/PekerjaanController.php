@@ -15,7 +15,7 @@ class PekerjaanController extends Controller
 
         $pencari = PencariKerja::find($idPencari);
 
-        if (!$pencari) {
+        if (! $pencari) {
             return redirect()
                 ->route('login')
                 ->with(
@@ -34,7 +34,7 @@ class PekerjaanController extends Controller
 
         $query = Pekerjaan::with([
             'pemberiKerja',
-            'keahlian'
+            'keahlian',
         ])
             ->where(
                 'status_pekerjaan',
@@ -49,36 +49,25 @@ class PekerjaanController extends Controller
             $pencari->latitude !== null
             && $pencari->longitude !== null
         ) {
-            $query
-                ->select('*')
-                ->selectRaw(
-                    '(6371 * acos(
-                        cos(radians(?))
-                        * cos(radians(latitude))
-                        * cos(
-                            radians(longitude)
-                            - radians(?)
-                        )
-                        + sin(radians(?))
-                        * sin(radians(latitude))
-                    )) AS jarak_km',
-                    [
-                        $pencari->latitude,
-                        $pencari->longitude,
-                        $pencari->latitude
-                    ]
-                )
-                ->whereNotNull('latitude')
-                ->whereNotNull('longitude')
-                ->having('jarak_km', '<=', 10)
-                ->orderBy('jarak_km');
+            // Haversine in PHP also works with SQLite, which has no acos/radians.
+            // A latitude bounding box keeps the candidate query small.
+            $latitude = (float) $pencari->latitude;
+            $longitude = (float) $pencari->longitude;
+            $latitudeMargin = rad2deg(10 / 6371);
+            $pekerjaan = $query->whereNotNull('longitude')
+                ->whereBetween('latitude', [$latitude - $latitudeMargin, $latitude + $latitudeMargin])
+                ->get()->each(function (Pekerjaan $job) use ($latitude, $longitude): void {
+                    $deltaLat = deg2rad((float) $job->latitude - $latitude);
+                    $deltaLon = deg2rad((float) $job->longitude - $longitude);
+                    $a = sin($deltaLat / 2) ** 2
+                        + cos(deg2rad($latitude)) * cos(deg2rad((float) $job->latitude))
+                        * sin($deltaLon / 2) ** 2;
+                    $job->jarak_km = 6371 * 2 * asin(sqrt(min(1, max(0, $a))));
+                })->filter(fn (Pekerjaan $job): bool => $job->jarak_km <= 10)
+                ->sortBy('jarak_km')->values();
         } else {
-            $query->orderByDesc(
-                'tanggal_posting'
-            );
+            $pekerjaan = $query->orderByDesc('tanggal_posting')->get();
         }
-
-        $pekerjaan = $query->get();
 
         return view(
             'pencari_kerja.cari-pekerjaan',
@@ -95,7 +84,7 @@ class PekerjaanController extends Controller
 
         $pekerjaan->load([
             'pemberiKerja',
-            'keahlian'
+            'keahlian',
         ]);
 
         return view(

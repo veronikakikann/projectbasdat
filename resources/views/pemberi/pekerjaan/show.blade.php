@@ -28,6 +28,7 @@
 @endif
 
 <h2>{{ $pekerjaan->nama_pekerjaan }}</h2>
+<a href="{{ route('pemberi.pelamar.index', $pekerjaan) }}">Lihat semua pelamar</a>
 
 <table border="1" cellpadding="8" cellspacing="0">
 
@@ -136,6 +137,17 @@
 
                 <td>
                     {{ ucfirst($l->status_lamaran) }}
+                    @if($l->status_lamaran === 'selesai')
+                        <a href="{{ route('pemberi.rating.form', $l) }}">Beri / Edit Rating</a>
+                    @endif
+                    @if($l->buktiPenyelesaian)
+                        @if($l->buktiPenyelesaian->foto_bukti_kerja)
+                            <a href="{{ route('pemberi.bukti.file', [$l->buktiPenyelesaian, 'kerja']) }}">Bukti kerja</a>
+                        @endif
+                        @if($l->buktiPenyelesaian->foto_bukti_bayar)
+                            <a href="{{ route('pemberi.bukti.file', [$l->buktiPenyelesaian, 'bayar']) }}">Bukti bayar</a>
+                        @endif
+                    @endif
                 </td>
             </tr>
         @endforeach
@@ -151,35 +163,10 @@
 <hr>
 
 <h2>Bukti Penyelesaian</h2>
-
-@if(isset($bukti) && $bukti)
-
-    <p>
-        Bukti penyelesaian sudah tersedia.
-    </p>
-
-    @if($bukti->foto_bukti_kerja)
-        <p>
-            <a href="{{ route('pemberi.bukti.file', [$pekerjaan->id_pekerjaan, 'kerja']) }}">
-                Lihat Bukti Pekerjaan
-            </a>
-        </p>
-    @endif
-
-    @if($bukti->foto_bukti_bayar)
-        <p>
-            <a href="{{ route('pemberi.bukti.file', [$pekerjaan->id_pekerjaan, 'bayar']) }}">
-                Lihat Bukti Pembayaran
-            </a>
-        </p>
-    @endif
-
-@else
-
-    <p>Belum ada bukti penyelesaian.</p>
-
+<p>Bukti kerja dan pembayaran ditampilkan pada masing-masing pekerja di atas.</p>
+@if(in_array($pekerjaan->status_pekerjaan, ['sedang_dikerjakan', 'selesai'], true))
+    <p><a href="{{ route('pemberi.bukti.create', $pekerjaan) }}">Lihat semua bukti dan pembayaran</a></p>
 @endif
-
 <hr>
 
 <h2>Rating Saya</h2>
@@ -201,7 +188,7 @@
 
             <p>
                 <strong>Komentar:</strong>
-                {{ $rating->komentar ?? '-' }}
+                {{ $rating->kategori_komentar ?? '-' }}
             </p>
 
         </div>
@@ -216,7 +203,7 @@
 <hr>
 
 {{-- Tombol mulai pekerjaan --}}
-@if($pekerjaan->status_pekerjaan === 'tersedia')
+@if(in_array($pekerjaan->status_pekerjaan, ['tersedia', 'penuh'], true))
 
     <form
         action="{{ route('pemberi.pekerjaan.mulai', $pekerjaan->id_pekerjaan) }}"
@@ -237,7 +224,7 @@
 @endif
 
 {{-- Tombol tutup pekerjaan --}}
-@if(in_array($pekerjaan->status_pekerjaan, ['tersedia', 'sedang_dikerjakan']))
+@if(in_array($pekerjaan->status_pekerjaan, ['tersedia', 'penuh'], true) && $pekerjaan->jumlahDiterima() === 0)
 
     <form
         action="{{ route('pemberi.pekerjaan.tutup', $pekerjaan->id_pekerjaan) }}"

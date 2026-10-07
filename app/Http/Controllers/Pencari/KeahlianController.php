@@ -4,239 +4,127 @@ namespace App\Http\Controllers\Pencari;
 
 use App\Http\Controllers\Controller;
 use App\Models\KeahlianPencariKerja;
-use App\Models\PencariKerja;
+use App\Support\PrivateDocuments;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class KeahlianController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $idPencari = session('user_id');
+        $data = KeahlianPencariKerja::with('keahlian')->where('id_pencari', session('user_id'))
+            ->orderByDesc('tanggal_upload')->get();
 
-        $data = KeahlianPencariKerja::with('keahlian')
-            ->where('id_pencari', $idPencari)
-            ->orderByDesc('tanggal_upload')
-            ->get();
-
-        return view(
-            'keahlian_pencari_kerja.index',
-            compact('data')
-        );
+        return view('keahlian_pencari_kerja.index', compact('data'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('keahlian_pencari_kerja.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $idPencari = session('user_id');
-
-        if (!PencariKerja::where(
-            'id_pencari',
-            $idPencari
-        )->exists()) {
-            return redirect()
-                ->route('login')
-                ->with(
-                    'error',
-                    'Data Pencari Kerja tidak ditemukan.'
-                );
+        $data = $request->validate($this->rules(true));
+        $path = PrivateDocuments::store($request->file('file_surat_rekomendasi'), 'surat_rekomendasi');
+        try {
+            KeahlianPencariKerja::create([
+                'id_pencari' => session('user_id'),
+                'id_keahlian' => null,
+                'judul_keahlian' => $data['judul_keahlian'],
+                'deskripsi_keahlian' => $data['deskripsi_keahlian'],
+                'file_surat_rekomendasi' => $path,
+                'status_verifikasi_keahlian' => 'menunggu',
+                'tanggal_upload' => now(),
+            ]);
+        } catch (Throwable $exception) {
+            PrivateDocuments::deleteUnused($path);
+            throw $exception;
         }
 
-        $data = $request->validate([
-            'judul_keahlian' =>
-                'required|string|max:255',
-
-            'deskripsi_keahlian' =>
-                'required|string',
-
-            'file_surat_rekomendasi' =>
-                'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
-
-        $filePath = $request
-            ->file('file_surat_rekomendasi')
-            ->store(
-                'surat_rekomendasi',
-                'public'
-            );
-
-        KeahlianPencariKerja::create([
-            'id_pencari' =>
-                $idPencari,
-
-            // Kategori ditentukan Admin
-            'id_keahlian' =>
-                null,
-
-            'judul_keahlian' =>
-                $data['judul_keahlian'],
-
-            'deskripsi_keahlian' =>
-                $data['deskripsi_keahlian'],
-
-            'file_surat_rekomendasi' =>
-                $filePath,
-
-            'status_verifikasi_keahlian' =>
-                'menunggu',
-
-            'tanggal_upload' =>
-                now(),
-        ]);
-
-        return redirect()
-            ->route('keahlian_pencari_kerja.index')
-            ->with(
-                'success',
-                'Keahlian berhasil diajukan dan menunggu verifikasi admin.'
-            );
+        return redirect()->route('keahlian_pencari_kerja.index')->with('success', 'Keahlian menunggu verifikasi admin.');
     }
 
-    public function edit(int $id_keahlian_pencari)
+    public function edit(int $id_keahlian_pencari): View
     {
-        $row = KeahlianPencariKerja::where(
-            'id_keahlian_pencari',
-            $id_keahlian_pencari
-        )
-            ->where(
-                'id_pencari',
-                session('user_id')
-            )
-            ->first();
+        $row = $this->pengajuan($id_keahlian_pencari);
+        $this->bolehMengubah($row);
 
-        abort_unless($row, 404);
-
-        abort_unless(
-            in_array(
-                $row->status_verifikasi_keahlian,
-                ['menunggu', 'ditolak'],
-                true
-            ),
-            403
-        );
-
-        return view(
-            'keahlian_pencari_kerja.edit',
-            compact('row')
-        );
+        return view('keahlian_pencari_kerja.edit', compact('row'));
     }
 
-    public function update(
-        Request $request,
-        int $id_keahlian_pencari
-    ) {
-        $row = KeahlianPencariKerja::where(
-            'id_keahlian_pencari',
-            $id_keahlian_pencari
-        )
-            ->where(
-                'id_pencari',
-                session('user_id')
-            )
-            ->first();
+    public function update(Request $request, int $id_keahlian_pencari): RedirectResponse
+    {
+        $this->pengajuan($id_keahlian_pencari);
+        $data = $request->validate($this->rules(false));
+        $newPath = null;
+        $oldPath = null;
+        try {
+            DB::transaction(function () use ($request, $id_keahlian_pencari, $data, &$newPath, &$oldPath): void {
+                $row = $this->pengajuan($id_keahlian_pencari, true);
+                $this->bolehMengubah($row);
+                $updates = [
+                    'judul_keahlian' => $data['judul_keahlian'],
+                    'deskripsi_keahlian' => $data['deskripsi_keahlian'],
+                    'status_verifikasi_keahlian' => 'menunggu',
+                    'id_keahlian' => null,
+                    'tanggal_upload' => now(),
+                ];
+                if ($request->hasFile('file_surat_rekomendasi')) {
+                    $oldPath = $row->file_surat_rekomendasi;
+                    $newPath = PrivateDocuments::store($request->file('file_surat_rekomendasi'), 'surat_rekomendasi');
+                    $updates['file_surat_rekomendasi'] = $newPath;
+                }
+                $row->update($updates);
+            });
+        } catch (Throwable $exception) {
+            PrivateDocuments::deleteUnused($newPath);
+            throw $exception;
+        }
+        PrivateDocuments::deleteUnused($oldPath);
 
-        abort_unless($row, 404);
+        return redirect()->route('keahlian_pencari_kerja.index')->with('success', 'Pengajuan kembali menunggu verifikasi.');
+    }
 
-        abort_unless(
-            in_array(
-                $row->status_verifikasi_keahlian,
-                ['menunggu', 'ditolak'],
-                true
-            ),
-            403
-        );
+    public function destroy(int $id_keahlian_pencari): RedirectResponse
+    {
+        $path = DB::transaction(function () use ($id_keahlian_pencari): ?string {
+            $row = $this->pengajuan($id_keahlian_pencari, true);
+            $this->bolehMengubah($row);
+            $path = $row->file_surat_rekomendasi;
+            $row->delete();
 
-        $data = $request->validate([
-            'judul_keahlian' =>
-                'required|string|max:255',
+            return $path;
+        });
+        PrivateDocuments::deleteUnused($path);
 
-            'deskripsi_keahlian' =>
-                'required|string',
+        return redirect()->route('keahlian_pencari_kerja.index')->with('success', 'Pengajuan dihapus.');
+    }
 
-            'file_surat_rekomendasi' =>
-                'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
-
-        $row->judul_keahlian =
-            $data['judul_keahlian'];
-
-        $row->deskripsi_keahlian =
-            $data['deskripsi_keahlian'];
-
-        // Jika ditolak lalu diperbaiki,
-        // pengajuan kembali menunggu verifikasi.
-        $row->status_verifikasi_keahlian =
-            'menunggu';
-
-        if ($request->hasFile('file_surat_rekomendasi')) {
-
-            if ($row->file_surat_rekomendasi) {
-                Storage::disk('public')->delete(
-                    $row->file_surat_rekomendasi
-                );
-            }
-
-            $row->file_surat_rekomendasi =
-                $request
-                    ->file('file_surat_rekomendasi')
-                    ->store(
-                        'surat_rekomendasi',
-                        'public'
-                    );
+    private function pengajuan(int $id, bool $lock = false): KeahlianPencariKerja
+    {
+        $query = KeahlianPencariKerja::where('id_pencari', session('user_id'));
+        if ($lock) {
+            $query->lockForUpdate();
         }
 
-        $row->tanggal_upload = now();
-
-        $row->save();
-
-        return redirect()
-            ->route('keahlian_pencari_kerja.index')
-            ->with(
-                'success',
-                'Pengajuan keahlian diperbarui dan menunggu verifikasi ulang.'
-            );
+        return $query->findOrFail($id);
     }
 
-    public function destroy(int $id_keahlian_pencari)
+    private function bolehMengubah(KeahlianPencariKerja $row): void
     {
-        $row = KeahlianPencariKerja::where(
-            'id_keahlian_pencari',
-            $id_keahlian_pencari
-        )
-            ->where(
-                'id_pencari',
-                session('user_id')
-            )
-            ->first();
+        abort_unless(in_array($row->status_verifikasi_keahlian, ['menunggu', 'ditolak'], true), 403);
+    }
 
-        abort_unless($row, 404);
-
-        abort_unless(
-            in_array(
-                $row->status_verifikasi_keahlian,
-                ['menunggu', 'ditolak'],
-                true
-            ),
-            403
-        );
-
-        if ($row->file_surat_rekomendasi) {
-            Storage::disk('public')->delete(
-                $row->file_surat_rekomendasi
-            );
-        }
-
-        $row->delete();
-
-        return redirect()
-            ->route('keahlian_pencari_kerja.index')
-            ->with(
-                'success',
-                'Pengajuan keahlian berhasil dihapus.'
-            );
+    private function rules(bool $creating): array
+    {
+        return [
+            'judul_keahlian' => 'required|string|max:255',
+            'deskripsi_keahlian' => 'required|string|max:2000',
+            'file_surat_rekomendasi' => ($creating ? 'required' : 'nullable').'|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ];
     }
 }

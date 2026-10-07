@@ -106,7 +106,7 @@
                 id="catatan"
                 name="catatan"
                 rows="5"
-                maxlength="500"
+                maxlength="1000"
                 style="width:100%;"
                 placeholder="Tambahkan catatan mengenai pekerjaan jika diperlukan..."
             >{{ old('catatan') }}</textarea>

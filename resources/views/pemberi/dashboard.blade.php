@@ -151,7 +151,7 @@
             <a href="{{ route('pemberi.profil.show') }}">Profil</a>
             <a href="{{ route('pemberi.pekerjaan.index') }}">Lowongan Saya</a>
             <a href="{{ route('pemberi.lamaran.index') }}">Pelamar</a>
-            <a href="{{ route('pemberi.notifikasi') }}">Notifikasi</a>
+            <a href="{{ route('pemberi.notifikasi.index') }}">Notifikasi</a>
 
             <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                 @csrf

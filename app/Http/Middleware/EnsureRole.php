@@ -14,14 +14,14 @@ class EnsureRole
         Closure $next,
         string ...$roles
     ): Response {
-        
+
         /*
         |--------------------------------------------------------------------------
         | 1. CEK LOGIN
         |--------------------------------------------------------------------------
         */
 
-        if (!session('login')) {
+        if (! session('login')) {
             return redirect()
                 ->route('login')
                 ->with(
@@ -38,7 +38,7 @@ class EnsureRole
 
         $role = session('role');
 
-        if (!in_array($role, $roles, true)) {
+        if (! in_array($role, $roles, true)) {
             abort(
                 403,
                 'Kamu tidak memiliki akses ke halaman ini.'
@@ -60,9 +60,10 @@ class EnsureRole
                 )
                 ->first();
 
-            if (!$admin) {
+            if (! $admin) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -90,9 +91,10 @@ class EnsureRole
                 )
                 ->first();
 
-            if (!$pemberi) {
+            if (! $pemberi) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -108,7 +110,8 @@ class EnsureRole
                 !== 'terverifikasi'
             ) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -124,7 +127,8 @@ class EnsureRole
                 !== 'aktif'
             ) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -152,9 +156,10 @@ class EnsureRole
                 )
                 ->first();
 
-            if (!$pencari) {
+            if (! $pencari) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -170,7 +175,8 @@ class EnsureRole
                 !== 'terverifikasi'
             ) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
@@ -186,7 +192,8 @@ class EnsureRole
                 !== 'aktif'
             ) {
 
-                $request->session()->flush();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return redirect()
                     ->route('login')
