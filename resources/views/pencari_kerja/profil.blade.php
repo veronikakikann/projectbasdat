@@ -164,13 +164,16 @@
 
                     <input
                         type="text"
-                        name="nik"
-                        value="{{ old('nik', $pencari->nik) }}"
+                        value="{{ $pencari->nik }}"
                         maxlength="16"
-                        required
+                        readonly
                     >
 
-                </div>
+                    <small style="color: #777;">
+                        NIK tidak dapat diubah karena digunakan untuk verifikasi identitas.
+                    </small>
+
+        </div>
 
                 <div class="field">
 
