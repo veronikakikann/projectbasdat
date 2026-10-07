@@ -22,54 +22,68 @@ class RegisterController extends Controller
      */
     public function register(Request $request)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI INPUT DARI FORM
+        |--------------------------------------------------------------------------
+        */
         $request->validate([
             'role' => [
                 'required',
                 'in:pemberi_kerja,pencari_kerja',
             ],
-
             'nik' => [
                 'required',
-                'string',
+                'numeric', // Diubah menjadi numeric agar validasi angka berfungsi
                 'digits:16',
             ],
-
             'file_ktp' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png,pdf',
-                'max:2048',
+                'max:2048', // Maksimal 2MB
             ],
-
             'nama' => [
                 'required',
                 'string',
                 'max:100',
             ],
-
             'alamat' => [
                 'required',
                 'string',
             ],
-
             'no_telpon' => [
                 'required',
                 'string',
                 'max:15',
             ],
-
             'email' => [
                 'required',
                 'email',
                 'max:100',
             ],
-
             'password' => [
                 'required',
                 'string',
-                'min:6',
+                'min:8', // Minimal 8 karakter
+                'regex:/[a-zA-Z]/', // Harus mengandung huruf
+                'regex:/[0-9]/',    // Harus mengandung angka
                 'confirmed',
             ],
+        ], [
+            // KUSTOMISASI PESAN ERROR
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.numeric' => 'NIK hanya boleh berisi angka.',
+            'nik.digits' => 'NIK harus tepat 16 digit angka.',
+            'file_ktp.required' => 'File KTP wajib diunggah.',
+            'file_ktp.mimes' => 'Format file KTP harus berupa jpg, jpeg, png, atau pdf.',
+            'file_ktp.max' => 'Ukuran file KTP terlalu besar (maksimal 2 MB).',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.regex' => 'Password harus mengandung kombinasi huruf dan angka.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         /*

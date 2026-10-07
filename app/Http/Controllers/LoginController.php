@@ -60,47 +60,47 @@ class LoginController extends Controller
                 ->where('email', $request->email)
                 ->first();
 
-            if (
-                $user &&
-                Hash::check($request->password, $user->password)
-            ) {
-
-                // Cek status verifikasi admin
-                if ($user->status_verifikasi !== 'terverifikasi') {
-                    return back()
-                        ->withInput($request->except('password'))
-                        ->with(
-                            'error',
-                            'Akun belum diverifikasi admin.'
-                        );
-                }
-
-                // Cek status akun
-                if ($user->status_akun !== 'aktif') {
-                    return back()
-                        ->withInput($request->except('password'))
-                        ->with(
-                            'error',
-                            'Akun sedang dinonaktifkan.'
-                        );
-                }
-
-                // Regenerasi session setelah semua pengecekan lolos
-                $request->session()->regenerate();
-
-                // Belum diverifikasi admin
-                if ($user->status_verifikasi === 'menunggu') {
-                    return back()
-                        ->withInput()
-                        ->with(
-                            'error',
-                            'Akun kamu masih menunggu verifikasi admin.'
-                        );
-                }
-
-                return redirect()
-                    ->route('pemberi.dashboard');
+            // Cek apakah email ada di database
+            if (!$user) {
+                return back()
+                    ->withErrors(['email' => 'Email belum terdaftar sebagai pemberi kerja.'])
+                    ->withInput($request->except('password'));
             }
+
+            // Cek apakah password cocok
+            if (!Hash::check($request->password, $user->password)) {
+                return back()
+                    ->withErrors(['password' => 'Password yang kamu masukkan salah.'])
+                    ->withInput($request->except('password'));
+            }
+
+            // Cek status verifikasi admin
+            if ($user->status_verifikasi === 'menunggu') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun kamu masih menunggu verifikasi admin.');
+            }
+
+            if ($user->status_verifikasi !== 'terverifikasi') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun belum diverifikasi admin.');
+            }
+
+            // Cek status akun
+            if ($user->status_akun !== 'aktif') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun sedang dinonaktifkan.');
+            }
+
+            // Regenerasi session setelah semua pengecekan lolos
+            $request->session()->regenerate();
+
+            // SIMPAN SESSION LOGIN
+            $request->session()->put('login', true);
+            $request->session()->put('role', 'pemberi_kerja');
+            $request->session()->put('user_id', $user->id_pemberi); // Sesuaikan dengan nama ID di database
+            $request->session()->put('user_name', $user->nama);
+
+            return redirect()->route('pemberi.dashboard');
         }
 
         // =========================================================
@@ -112,47 +112,47 @@ class LoginController extends Controller
                 ->where('email', $request->email)
                 ->first();
 
-            if (
-                $user &&
-                Hash::check($request->password, $user->password)
-            ) {
-
-                // Cek status verifikasi admin
-                if ($user->status_verifikasi !== 'terverifikasi') {
-                    return back()
-                        ->withInput($request->except('password'))
-                        ->with(
-                            'error',
-                            'Akun belum diverifikasi admin.'
-                        );
-                }
-
-                // Cek status akun
-                if ($user->status_akun !== 'aktif') {
-                    return back()
-                        ->withInput($request->except('password'))
-                        ->with(
-                            'error',
-                            'Akun sedang dinonaktifkan.'
-                        );
-                }
-
-                // Regenerasi session setelah semua pengecekan lolos
-                $request->session()->regenerate();
-
-                // Belum diverifikasi admin
-                if ($user->status_verifikasi === 'menunggu') {
-                    return back()
-                        ->withInput()
-                        ->with(
-                            'error',
-                            'Akun kamu masih menunggu verifikasi admin.'
-                        );
-                }
-
-                return redirect()
-                    ->route('pencari.dashboard');
+            // Cek apakah email ada di database
+            if (!$user) {
+                return back()
+                    ->withErrors(['email' => 'Email belum terdaftar sebagai pencari kerja.'])
+                    ->withInput($request->except('password'));
             }
+
+            // Cek apakah password cocok
+            if (!Hash::check($request->password, $user->password)) {
+                return back()
+                    ->withErrors(['password' => 'Password yang kamu masukkan salah.'])
+                    ->withInput($request->except('password'));
+            }
+
+            // Cek status verifikasi admin
+            if ($user->status_verifikasi === 'menunggu') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun kamu masih menunggu verifikasi admin.');
+            }
+
+            if ($user->status_verifikasi !== 'terverifikasi') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun belum diverifikasi admin.');
+            }
+
+            // Cek status akun
+            if ($user->status_akun !== 'aktif') {
+                return back()->withInput($request->except('password'))
+                    ->with('error', 'Akun sedang dinonaktifkan.');
+            }
+
+            // Regenerasi session setelah semua pengecekan lolos
+            $request->session()->regenerate();
+
+            // SIMPAN SESSION LOGIN
+            $request->session()->put('login', true);
+            $request->session()->put('role', 'pencari_kerja');
+            $request->session()->put('user_id', $user->id_pencari); // Sesuaikan dengan nama ID di database
+            $request->session()->put('user_name', $user->nama);
+
+            return redirect()->route('pencari.dashboard');
         }
 
         // =========================================================
