@@ -1,39 +1,32 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <title>Ajukan Keahlian</title>
 </head>
+
 <body>
-    <h1>Ajukan Keahlian</h1>
 
-    <a href="{{ route('keahlian_pencari_kerja.index') }}">
-        ← Kembali ke Keahlian Saya
-    </a>
+<div style="max-width:700px;margin:40px auto;">
 
-    <hr>
-
-    @if(session('success'))
-        <p style="color: green;">
-            {{ session('success') }}
-        </p>
-    @endif
-
-    @if(session('error'))
-        <p style="color: red;">
-            {{ session('error') }}
-        </p>
-    @endif
+    <h2>Ajukan Keahlian</h2>
 
     @if($errors->any())
-        <div style="color: red;">
+
+        <div style="background:#f8d7da;padding:15px;">
+
             <ul>
+
                 @foreach($errors->all() as $error)
+
                     <li>{{ $error }}</li>
+
                 @endforeach
+
             </ul>
+
         </div>
+
     @endif
 
     <form
@@ -41,53 +34,67 @@
         method="POST"
         enctype="multipart/form-data"
     >
+
         @csrf
 
-        <label>Judul Keahlian:</label><br>
+        <div style="margin-bottom:15px;">
 
-        <input
-            type="text"
-            name="judul_keahlian"
-            value="{{ old('judul_keahlian') }}"
-            placeholder="Contoh: Bisa memperbaiki AC"
-            required
-        >
+            <label>
+                Judul Keahlian
+            </label>
 
-        <br><br>
+            <input
+                type="text"
+                name="judul_keahlian"
+                value="{{ old('judul_keahlian') }}"
+                required
+                style="width:100%;padding:10px;"
+            >
 
-        <label>Deskripsi Keahlian:</label><br>
+        </div>
 
-        <textarea
-            name="deskripsi_keahlian"
-            rows="5"
-            cols="50"
-            placeholder="Jelaskan kemampuan atau pengalaman yang kamu miliki..."
-            required
-        >{{ old('deskripsi_keahlian') }}</textarea>
+        <div style="margin-bottom:15px;">
 
-        <br><br>
+            <label>
+                Deskripsi Keahlian
+            </label>
 
-        <label>Bukti / Surat Rekomendasi:</label><br>
+            <textarea
+                name="deskripsi_keahlian"
+                required
+                style="width:100%;height:120px;padding:10px;"
+            >{{ old('deskripsi_keahlian') }}</textarea>
 
-        <input
-            type="file"
-            name="file_surat_rekomendasi"
-            accept=".jpg,.jpeg,.png,.pdf"
-            required
-        >
+        </div>
 
-        <br>
+        <div style="margin-bottom:15px;">
 
-        <small>
-            Format: JPG, JPEG, PNG, atau PDF. Maksimal 2 MB.
-        </small>
+            <label>
+                Surat Rekomendasi
+            </label>
 
-        <br><br>
+            <input
+                type="file"
+                name="file_surat_rekomendasi"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+            >
+
+        </div>
 
         <button type="submit">
             Ajukan Keahlian
         </button>
 
+        <a
+            href="{{ route('keahlian_pencari_kerja.index') }}"
+        >
+            Kembali
+        </a>
+
     </form>
+
+</div>
+
 </body>
 </html>

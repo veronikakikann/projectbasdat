@@ -161,8 +161,136 @@
                 type="submit"
                 class="logout"
             >
-                Logout
-            </button>
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Pemberi Kerja</h3>
+
+            <a
+                href="{{ route('pemberi_kerja.index') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Pencari Kerja</h3>
+
+            <a
+                href="{{ route('pencari_kerja.index') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Keahlian</h3>
+
+            <a
+                href="{{ route('keahlian.index') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Keahlian Pencari Kerja</h3>
+
+            <a
+                href="{{ route('admin.verifikasi-keahlian') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Pekerjaan</h3>
+
+            <a
+                href="{{ route('admin.transaksi.index', 'pekerjaan') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Lamaran</h3>
+
+            <a
+                href="{{ route('admin.transaksi.index', 'lamaran') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Bukti Penyelesaian</h3>
+
+            <a
+                href="{{ route('admin.transaksi.index', 'bukti') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Rating</h3>
+
+            <a
+                href="{{ route('admin.transaksi.index', 'rating') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Data Notifikasi</h3>
+
+            <a
+                href="{{ route('admin.transaksi.index', 'notifikasi') }}"
+                class="btn"
+            >
+                Kelola
+            </a>
+
+        </div>
 
         </form>
 

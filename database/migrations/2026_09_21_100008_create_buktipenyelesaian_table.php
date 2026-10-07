@@ -8,18 +8,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('buktipenyelesaian', function (Blueprint $table) {
+        Schema::create('bukti_penyelesaian', function (Blueprint $table) {
             $table->id('id_bukti');
-            $table->foreignId('id_lamaran')->unique()->constrained('lamaran', 'id_lamaran');
-            $table->string('foto_bukti_kerja', 255);
-            $table->string('foto_bukti_bayar', 255);
+
+            $table->unsignedBigInteger('id_lamaran')->unique();
+
+            $table->string('foto_bukti_kerja')->nullable();
+            $table->string('foto_bukti_bayar')->nullable();
+
             $table->text('catatan')->nullable();
-            $table->timestamp('tanggal_upload')->useCurrent();
+
+            $table->dateTime('tanggal_upload')->nullable();
+
+            $table->foreign('id_lamaran')
+                ->references('id_lamaran')
+                ->on('lamaran')
+                ->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('buktipenyelesaian');
+        Schema::dropIfExists('bukti_penyelesaian');
     }
 };

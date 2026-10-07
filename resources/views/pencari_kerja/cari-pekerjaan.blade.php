@@ -1,156 +1,147 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Pekerjaan di Sekitarmu</title>
+    <title>Cari Pekerjaan</title>
 
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #f5f6f8;
+            background: #f5f6fa;
+            margin: 0;
         }
 
-        .header {
-            background: #27ae60;
+        .navbar {
+            background: #1f3c88;
+            padding: 16px 30px;
+        }
+
+        .navbar a {
             color: white;
-            padding: 25px;
+            text-decoration: none;
+            margin-right: 20px;
         }
 
         .container {
-            width: 90%;
-            max-width: 900px;
-            margin: 25px auto;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
         }
 
-        .back {
-            color: white;
-            text-decoration: none;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
         }
 
-        .job-card {
+        .card {
             background: white;
             padding: 20px;
-            margin-bottom: 18px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
         }
 
-        .job-card h3 {
+        .card h3 {
             margin-top: 0;
         }
 
-        .tag {
-            display: inline-block;
-            background: #eaf7ef;
-            padding: 6px 10px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-        }
-
-        .detail {
+        .info {
             margin: 8px 0;
+            color: #555;
         }
 
         .btn {
             display: inline-block;
-            background: #27ae60;
+            background: #1f3c88;
             color: white;
-            padding: 10px 15px;
             text-decoration: none;
+            padding: 9px 14px;
             border-radius: 6px;
             margin-top: 10px;
         }
 
         .empty {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
+<div class="navbar">
 
-        <h1>Pekerjaan di Sekitarmu</h1>
+    <a href="{{ route('pencari.dashboard') }}">
+        Dashboard
+    </a>
 
-        <a
-            href="{{ route('pencari.dashboard') }}"
-            class="back"
-        >
-            ← Kembali ke Dashboard
-        </a>
+    <a href="{{ route('pencari.lamaran-saya') }}">
+        Lamaran Saya
+    </a>
 
-    </div>
+    <a href="{{ route('pencari.profil') }}">
+        Profil
+    </a>
 
-    <div class="container">
+</div>
 
-        @if(session('success'))
-            <p style="color: green;">
-                {{ session('success') }}
-            </p>
-        @endif
+<div class="container">
 
-        @if(session('error'))
-            <p style="color: red;">
-                {{ session('error') }}
-            </p>
-        @endif
+    <h2>Cari Pekerjaan</h2>
 
-        <p>
-            Berikut pekerjaan yang sesuai dengan keahlianmu
-            dan berada di sekitar lokasimu.
-        </p>
+    @if($pekerjaan->count() > 0)
 
-        @if($pekerjaan->count() > 0)
+        <div class="grid">
 
             @foreach($pekerjaan as $p)
 
-                <div class="job-card">
-
-                    <span class="tag">
-                        {{ $p->keahlian->nama_keahlian ?? 'Pekerjaan' }}
-                    </span>
+                <div class="card">
 
                     <h3>
                         {{ $p->nama_pekerjaan }}
                     </h3>
 
-                    <div class="detail">
-                        <strong>Pemberi Kerja:</strong>
+                    <div class="info">
+                        <strong>Keahlian:</strong>
+                        {{ $p->keahlian->nama_keahlian ?? '-' }}
+                    </div>
+
+                    <div class="info">
+                        <strong>Pemberi:</strong>
                         {{ $p->pemberiKerja->nama ?? '-' }}
                     </div>
 
-                    <div class="detail">
+                    <div class="info">
                         <strong>Lokasi:</strong>
                         {{ $p->lokasi ?? '-' }}
                     </div>
 
                     @if(isset($p->jarak_km))
-                        <div class="detail">
+
+                        <div class="info">
                             <strong>Jarak:</strong>
-                            {{ number_format($p->jarak_km, 1, ',', '.') }} km
+                            {{ number_format($p->jarak_km, 2) }} km
                         </div>
+
                     @endif
 
-                    <div class="detail">
+                    <div class="info">
                         <strong>Upah:</strong>
-                        Rp {{ number_format($p->upah, 0, ',', '.') }}
+                        Rp {{ number_format($p->upah ?? 0, 0, ',', '.') }}
                     </div>
 
-                    <div class="detail">
-                        <strong>Dibutuhkan:</strong>
-                        {{ $p->jumlah_pekerja }} orang
-                    </div>
-
-                    <div class="detail">
-                        <strong>Tanggal:</strong>
-                        {{ $p->tanggal_pengerjaan ?? '-' }}
+                    <div class="info">
+                        <strong>Jumlah pekerja:</strong>
+                        {{ $p->jumlah_pekerja }}
                     </div>
 
                     <a
@@ -164,23 +155,26 @@
 
             @endforeach
 
-        @else
+        </div>
 
-            <div class="empty">
+    @else
 
-                <h3>Belum ada pekerjaan yang cocok</h3>
+        <div class="empty">
 
-                <p>
-                    Saat ini belum ditemukan pekerjaan yang sesuai
-                    dengan keahlian dan lokasi kamu.
-                </p>
+            <h3>
+                Tidak ada pekerjaan yang tersedia.
+            </h3>
 
-            </div>
+            <p>
+                Belum ada pekerjaan yang sesuai dengan
+                keahlian terverifikasi dan lokasi kamu.
+            </p>
 
-        @endif
+        </div>
 
-    </div>
+    @endif
+
+</div>
 
 </body>
-
 </html>

@@ -1,3 +1,20 @@
+## Project Basdat — backend naura-controller
+
+PHP 8.3+ diperlukan. Instal dependensi dengan `composer install`, siapkan `.env`
+dari `.env.example`, konfigurasi database, lalu jalankan `php artisan key:generate`
+dan `php artisan migrate`. Jangan gunakan `migrate:fresh` pada database yang berisi data.
+
+Untuk memperbarui instalasi lama, buat backup database dan storage terlebih dahulu,
+jalankan `composer install` dan `php artisan migrate`, lalu
+`php artisan documents:privatize`. Perintah terakhir memindahkan KTP, surat
+rekomendasi, dan bukti kerja/pembayaran dari disk public ke local; aman dijalankan
+ulang dan akan berhenti dengan error bila ada konflik isi file. Pastikan perintah
+berhasil supaya dokumen lama tidak lagi dapat diakses melalui `/storage`.
+
+Jalankan pengujian backend dengan `php artisan test`. Pengujian menggunakan SQLite
+in-memory dan storage sementara sehingga tidak mengubah database aplikasi.
+`php artisan db:seed --class=DemoPemberiSeeder` hanya untuk data contoh lokal.
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

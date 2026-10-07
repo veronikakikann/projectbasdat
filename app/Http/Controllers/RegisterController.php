@@ -2,145 +2,225 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PrivateDocuments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
-    // =========================
-    // HALAMAN REGISTER
-    // =========================
+    /**
+     * Menampilkan halaman registrasi.
+     */
     public function showRegister()
     {
         return view('register');
     }
 
-
-    // =========================
-    // PROSES REGISTER
-    // =========================
+    /**
+     * Memproses registrasi Pemberi Kerja / Pencari Kerja.
+     */
     public function register(Request $request)
     {
         $request->validate([
-            'role' => 'required|in:pemberi_kerja,pencari_kerja',
-            'nik' => 'required|unique:pencari_kerja,nik|unique:pemberi_kerja,nik',
-            'file_ktp' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'nama' => 'required',
-            'alamat' => 'required',
-            'no_telpon' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:6|confirmed',
+            'role' => [
+                'required',
+                'in:pemberi_kerja,pencari_kerja',
+            ],
+
+            'nik' => [
+                'required',
+                'string',
+                'digits:16',
+            ],
+
+            'file_ktp' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:2048',
+            ],
+
+            'nama' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'alamat' => [
+                'required',
+                'string',
+            ],
+
+            'no_telpon' => [
+                'required',
+                'string',
+                'max:15',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:100',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'confirmed',
+            ],
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | CEK NIK
+        |--------------------------------------------------------------------------
+        */
 
-        // =========================
-        // CEK EMAIL
-        // =========================
+        $nikSudahAda =
+            DB::table('pencari_kerja')
+                ->where('nik', $request->nik)
+                ->exists()
+            ||
+            DB::table('pemberi_kerja')
+                ->where('nik', $request->nik)
+                ->exists();
 
-        $emailPencari = DB::table('pencari_kerja')
-            ->where('email', $request->email)
-            ->exists();
+        if ($nikSudahAda) {
+            return back()
+                ->withInput($request->except(['password', 'password_confirmation']))
+                ->with(
+                    'error',
+                    'NIK sudah terdaftar.'
+                );
+        }
 
-        $emailPemberi = DB::table('pemberi_kerja')
-            ->where('email', $request->email)
-            ->exists();
+        /*
+        |--------------------------------------------------------------------------
+        | CEK EMAIL
+        |--------------------------------------------------------------------------
+        */
 
-        if ($emailPencari || $emailPemberi) {
+        $emailSudahAda =
+            DB::table('pencari_kerja')
+                ->where('email', $request->email)
+                ->exists()
+            ||
+            DB::table('pemberi_kerja')
+                ->where('email', $request->email)
+                ->exists()
+            ||
+            DB::table('admin')
+                ->where('email', $request->email)
+                ->exists();
+
+        if ($emailSudahAda) {
+            return back()
+                ->withInput($request->except(['password', 'password_confirmation']))
+                ->with(
+                    'error',
+                    'Email sudah terdaftar.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SIMPAN FILE KTP
+        |--------------------------------------------------------------------------
+        */
+
+        $pathKtp = $request
+            ->file('file_ktp')
+            ->store('ktp', 'local');
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA UMUM
+        |--------------------------------------------------------------------------
+        */
+
+        $dataUmum = [
+            'nik' => $request->nik,
+            'file_ktp' => $pathKtp,
+            'nama' => $request->nama,
+            'alamat' => $request->alamat,
+            'no_telpon' => $request->no_telpon,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+
+            // Akun baru harus diverifikasi Admin terlebih dahulu.
+            'status_verifikasi' => 'menunggu',
+
+            // Akun aktif, tetapi belum bisa login
+            // karena status_verifikasi masih menunggu.
+            'status_akun' => 'aktif',
+
+            // Belum ada Admin yang memverifikasi.
+            'id_admin' => null,
+
+            'tanggal_daftar' => now(),
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | SIMPAN DATA
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+            DB::transaction(function () use (
+                $request,
+                $dataUmum
+            ) {
+
+                if ($request->role === 'pemberi_kerja') {
+
+                    DB::table('pemberi_kerja')
+                        ->insert($dataUmum);
+
+                    return;
+                }
+
+                if ($request->role === 'pencari_kerja') {
+
+                    $dataPencari = array_merge(
+                        $dataUmum,
+                        [
+                            'foto_profil' => null,
+                            'latitude' => null,
+                            'longitude' => null,
+                            'file_surat_pengantar' => null,
+                        ]
+                    );
+
+                    DB::table('pencari_kerja')
+                        ->insert($dataPencari);
+                }
+            });
+        } catch (\Throwable $e) {
+            PrivateDocuments::deleteUnused($pathKtp);
+            report($e);
 
             return back()
-                ->withInput()
-                ->with('error', 'Email sudah terdaftar.');
-        }
-
-
-        // =========================
-        // UPLOAD KTP
-        // =========================
-
-        $fileKtp = $request->file('file_ktp');
-        $pathKtp = $fileKtp->store('ktp');
-
-
-        // =========================
-        // REGISTER PEMBERI KERJA
-        // =========================
-
-        if ($request->role === 'pemberi_kerja') {
-
-            DB::table('pemberi_kerja')->insert([
-                'nik' => $request->nik,
-                'file_ktp' => $pathKtp,
-                'nama' => $request->nama,
-                'alamat' => $request->alamat,
-                'no_telpon' => $request->no_telpon,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-
-                // Akun baru menunggu verifikasi admin
-                'status_verifikasi' => 'menunggu',
-
-                // Akun belum dinonaktifkan
-                'status_akun' => 'aktif',
-
-                'id_admin' => null,
-                'tanggal_daftar' => now(),
-            ]);
-
-            return redirect()
-                ->route('login')
+                ->withInput($request->except(['password', 'password_confirmation']))
                 ->with(
-                    'success',
-                    'Registrasi berhasil! Silakan tunggu verifikasi admin sebelum login.'
+                    'error',
+                    'Registrasi gagal. Silakan coba lagi.'
                 );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | BERHASIL
+        |--------------------------------------------------------------------------
+        */
 
-        // =========================
-        // REGISTER PENCARI KERJA
-        // =========================
-
-        if ($request->role === 'pencari_kerja') {
-
-            DB::table('pencari_kerja')->insert([
-                'nik' => $request->nik,
-                'file_ktp' => $pathKtp,
-                'nama' => $request->nama,
-                'alamat' => $request->alamat,
-                'no_telpon' => $request->no_telpon,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-
-                'foto_profil' => null,
-                'latitude' => null,
-                'longitude' => null,
-                'file_surat_pengantar' => null,
-
-                // Akun baru menunggu verifikasi admin
-                'status_verifikasi' => 'menunggu',
-
-                // Akun belum dinonaktifkan
-                'status_akun' => 'aktif',
-
-                'id_admin' => null,
-                'tanggal_daftar' => now(),
-            ]);
-
-            return redirect()
-                ->route('login')
-                ->with(
-                    'success',
-                    'Registrasi berhasil! Silakan tunggu verifikasi admin sebelum login.'
-                );
-        }
-
-
-        // =========================
-        // REGISTER GAGAL
-        // =========================
-
-        return back()
-            ->withInput()
-            ->with('error', 'Registrasi gagal.');
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Registrasi berhasil. Akun kamu menunggu verifikasi admin.'
+            );
     }
 }
