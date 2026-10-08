@@ -14,7 +14,7 @@
 
     {{-- Bar atas (hanya tampil di layar kecil) --}}
     <div class="topbar-mobile">
-        <div class="sidebar-brand">Teman <span>Kerja</span></div>
+        <div class="sidebar-brand">Teman<span>Kerja</span></div>
         <button type="button" class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('is-open')">Menu</button>
     </div>
 
