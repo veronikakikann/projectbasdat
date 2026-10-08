@@ -15,7 +15,17 @@ class ProfilController extends Controller
         $pencari = $this->user();
 
         return view(
-            'pencari_kerja.profil',
+            'pencari.profil.show',
+            compact('pencari')
+        );
+    }
+
+    public function edit()
+    {
+        $pencari = $this->user();
+
+        return view(
+            'pencari.profil.edit',
             compact('pencari')
         );
     }
@@ -24,50 +34,96 @@ class ProfilController extends Controller
     {
         $pencari = $this->user();
 
-        $data = $request->validate([
-            'nama' => 'required|string|max:100',
-            'alamat' => 'required|string|max:500',
-            'no_telpon' => 'required|string|max:15',
-            'email' => [
-                'required',
-                'email',
-                'max:100',
-                Rule::unique(
-                    'pencari_kerja',
-                    'email'
-                )->ignore(
-                    $pencari->id_pencari,
-                    'id_pencari'
-                ),
-                Rule::unique('pemberi_kerja', 'email'),
-                Rule::unique('admin', 'email'),
+        $data = $request->validate(
+            [
+                'nama' => 'required|string|max:100',
+
+                'alamat' => 'required|string|max:500',
+
+                'no_telpon' => 'required|string|max:15',
+
+                'email' => [
+                    'required',
+                    'email',
+                    'max:100',
+
+                    Rule::unique(
+                        'pencari_kerja',
+                        'email'
+                    )->ignore(
+                        $pencari->id_pencari,
+                        'id_pencari'
+                    ),
+
+                    Rule::unique(
+                        'pemberi_kerja',
+                        'email'
+                    ),
+
+                    Rule::unique(
+                        'admin',
+                        'email'
+                    ),
+                ],
+
+                'password' => [
+                    'nullable',
+                    'string',
+                    'min:8',
+                    'regex:/[a-zA-Z]/',
+                    'regex:/[0-9]/',
+                    'confirmed',
+                ],
+
+                'latitude' => [
+                    'nullable',
+                    'numeric',
+                    'between:-90,90',
+                ],
+
+                'longitude' => [
+                    'nullable',
+                    'numeric',
+                    'between:-180,180',
+                ],
             ],
-            'password' => [
-                'nullable', 
-                'string', 
-                'min:8',             // Minimal 8 karakter
-                'regex:/[a-zA-Z]/',  // Harus mengandung huruf
-                'regex:/[0-9]/',     // Harus mengandung angka
-                'confirmed'          // Harus cocok dengan kolom konfirmasi
-            ],
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-        ]);
+            [
+                'password.min' =>
+                    'Password minimal 8 karakter.',
+
+                'password.regex' =>
+                    'Password harus mengandung huruf dan angka.',
+
+                'password.confirmed' =>
+                    'Konfirmasi password tidak sama.',
+            ]
+        );
 
         $pencari->nama = $data['nama'];
-        $pencari->alamat = $data['alamat'];
-        $pencari->no_telpon = $data['no_telpon'];
-        $pencari->email = $data['email'];
-        $pencari->latitude = $data['latitude'] ?? null;
-        $pencari->longitude = $data['longitude'] ?? null;
 
-        if (! empty($data['password'])) {
-            $pencari->password = Hash::make($data['password']);
+        $pencari->alamat = $data['alamat'];
+
+        $pencari->no_telpon = $data['no_telpon'];
+
+        $pencari->email = $data['email'];
+
+        $pencari->latitude =
+            $data['latitude'] ?? null;
+
+        $pencari->longitude =
+            $data['longitude'] ?? null;
+
+        if (!empty($data['password'])) {
+            $pencari->password = Hash::make(
+                $data['password']
+            );
         }
 
-        // NIK TIDAK DIUBAH DI SINI
+        // NIK, status verifikasi, dan status akun
+        // tidak dapat diubah melalui halaman profil.
         $pencari->save();
 
+        // Perbarui nama pada session.
         session([
             'user_name' => $pencari->nama,
         ]);

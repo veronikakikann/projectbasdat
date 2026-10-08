@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pencari;
 
 use App\Http\Controllers\Controller;
+use App\Models\KeahlianPencariKerja;
 use App\Models\Lamaran;
 use App\Models\Pekerjaan;
 use App\Models\PencariKerja;
@@ -24,9 +25,34 @@ class DashboardController extends Controller
                 );
         }
 
+        // Ambil hanya keahlian milik pencari yang sudah terverifikasi.
+        $idKeahlianTerverifikasi = KeahlianPencariKerja::where(
+            'id_pencari',
+            $idPencari
+        )
+            ->where(
+                'status_verifikasi_keahlian',
+                'terverifikasi'
+            )
+            ->whereNotNull('id_keahlian')
+            ->pluck('id_keahlian')
+            ->unique();
+
+        // Hitung hanya lowongan tersedia yang sesuai
+        // dengan keahlian terverifikasi pencari.
         $jumlahPekerjaanTersedia = Pekerjaan::where(
             'status_pekerjaan',
             'tersedia'
+        )
+            ->whereIn(
+                'id_keahlian',
+                $idKeahlianTerverifikasi
+            )
+            ->count();
+
+        $totalLamaranTerkirim = Lamaran::where(
+            'id_pencari',
+            $idPencari
         )->count();
 
         $lamaranTerakhir = Lamaran::with('pekerjaan')
@@ -39,6 +65,7 @@ class DashboardController extends Controller
             compact(
                 'pencari',
                 'jumlahPekerjaanTersedia',
+                'totalLamaranTerkirim',
                 'lamaranTerakhir'
             )
         );

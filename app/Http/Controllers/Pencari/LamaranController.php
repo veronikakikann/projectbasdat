@@ -33,7 +33,7 @@ class LamaranController extends Controller
             ->get();
 
         return view(
-            'pencari_kerja.lamaran-saya',
+            'pencari.lamaran.index',
             compact('lamaran')
         );
     }
@@ -95,7 +95,10 @@ class LamaranController extends Controller
                 )
                     ->whereIn(
                         'status_lamaran',
-                        ['diterima', 'selesai']
+                        [
+                            'diterima',
+                            'selesai'
+                        ]
                     )
                     ->count();
 
@@ -107,20 +110,24 @@ class LamaranController extends Controller
                 }
 
                 Lamaran::create([
-                    'id_pekerjaan' => $pekerjaan->id_pekerjaan,
+                    'id_pekerjaan' =>
+                        $pekerjaan->id_pekerjaan,
 
-                    'id_pencari' => $idPencari,
+                    'id_pencari' =>
+                        $idPencari,
 
-                    'status_lamaran' => 'menunggu',
+                    'status_lamaran' =>
+                        'menunggu',
 
-                    'tanggal_submit' => now(),
+                    'tanggal_submit' =>
+                        now(),
                 ]);
 
                 Notifikasi::kirim(
                     $pekerjaan->id_pemberi,
                     'pemberi_kerja',
-                    'Ada pelamar baru untuk pekerjaan "'.
-                    $pekerjaan->nama_pekerjaan.
+                    'Ada pelamar baru untuk pekerjaan "' .
+                    $pekerjaan->nama_pekerjaan .
                     '".'
                 );
 
@@ -130,7 +137,10 @@ class LamaranController extends Controller
 
         if ($error) {
             return back()
-                ->with('error', $error);
+                ->with(
+                    'error',
+                    $error
+                );
         }
 
         return redirect()
@@ -141,21 +151,59 @@ class LamaranController extends Controller
             );
     }
 
-    public function batalkan(Lamaran $lamaran): RedirectResponse
-    {
-        abort_unless((int) $lamaran->id_pencari === (int) session('user_id'), 403);
-        $error = DB::transaction(function () use ($lamaran): ?string {
-            Pekerjaan::lockForUpdate()->findOrFail($lamaran->id_pekerjaan);
-            $current = Lamaran::lockForUpdate()->findOrFail($lamaran->id_lamaran);
-            abort_unless((int) $current->id_pencari === (int) session('user_id'), 403);
-            if ($current->status_lamaran !== 'menunggu') {
-                return 'Lamaran yang sudah diproses tidak dapat dibatalkan.';
+    public function batalkan(
+        Lamaran $lamaran
+    ): RedirectResponse {
+        abort_unless(
+            (int) $lamaran->id_pencari
+            ===
+            (int) session('user_id'),
+            403
+        );
+
+        $error = DB::transaction(
+            function () use (
+                $lamaran
+            ): ?string {
+
+                Pekerjaan::lockForUpdate()
+                    ->findOrFail(
+                        $lamaran->id_pekerjaan
+                    );
+
+                $current = Lamaran::lockForUpdate()
+                    ->findOrFail(
+                        $lamaran->id_lamaran
+                    );
+
+                abort_unless(
+                    (int) $current->id_pencari
+                    ===
+                    (int) session('user_id'),
+                    403
+                );
+
+                if (
+                    $current->status_lamaran
+                    !== 'menunggu'
+                ) {
+                    return 'Lamaran yang sudah diproses tidak dapat dibatalkan.';
+                }
+
+                $current->delete();
+
+                return null;
             }
-            $current->delete();
+        );
 
-            return null;
-        });
-
-        return $error ? back()->with('error', $error) : back()->with('success', 'Lamaran berhasil dibatalkan.');
+        return $error
+            ? back()->with(
+                'error',
+                $error
+            )
+            : back()->with(
+                'success',
+                'Lamaran berhasil dibatalkan.'
+            );
     }
 }
