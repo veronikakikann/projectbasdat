@@ -135,6 +135,46 @@
             .profile-btn span { display: none; }
             .profile-btn { padding: 0.4rem; }
         }
+
+        /* --- KOMPONEN UMUM HALAMAN ADMIN --- */
+        .panel { background: #fff; border: 1px solid var(--color-border); border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 1.25rem; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .toolbar-left { display: flex; flex-wrap: wrap; gap: .5rem; }
+        .table-wrap { overflow-x: auto; }
+        table.tbl { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        table.tbl th { text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .4px; color: var(--color-ink-soft); padding: .7rem .8rem; border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+        table.tbl td { padding: .75rem .8rem; border-bottom: 1px solid #EEF2F7; vertical-align: top; }
+        table.tbl tr:hover td { background: #FAFCFF; }
+        .actions { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+        .actions form { margin: 0; }
+        .btn { display: inline-block; border: 1px solid transparent; border-radius: 8px; padding: .55rem 1rem; font-weight: 700; font-size: .85rem; cursor: pointer; text-decoration: none; background: var(--color-primary); color: #fff; font-family: inherit; line-height: 1.2; }
+        .btn:hover { background: var(--color-primary-dark); }
+        .btn-sm { padding: .35rem .7rem; font-size: .8rem; }
+        .btn-ghost { background: #fff; color: var(--color-primary-dark); border-color: var(--color-border); }
+        .btn-ghost:hover { background: #F1F7FC; }
+        .btn-danger { background: #fff; color: #DC2626; border-color: #FECACA; }
+        .btn-danger:hover { background: #FEF2F2; }
+        .btn-ok { background: #16A34A; }
+        .btn-ok:hover { background: #15803D; }
+        .badge { display: inline-block; padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+        .badge-menunggu { background: #FEF3C7; color: #B45309; }
+        .badge-terverifikasi, .badge-aktif { background: #DCFCE7; color: #166534; }
+        .badge-ditolak, .badge-nonaktif { background: #FEE2E2; color: #991B1B; }
+        .tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+        .tab { padding: .45rem .9rem; border-radius: 999px; background: #fff; border: 1px solid var(--color-border); color: var(--color-ink-soft); font-weight: 600; font-size: .85rem; text-decoration: none; }
+        .tab.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+        .tab small { opacity: .8; margin-left: .25rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem 1.25rem; }
+        .field label { display: block; font-weight: 600; font-size: .85rem; margin-bottom: .3rem; }
+        .field input, .field select, .field textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--color-border); border-radius: 8px; font: inherit; background: #fff; }
+        .field input[readonly] { background: #F1F5F9; color: var(--color-ink-soft); }
+        .field textarea { min-height: 90px; resize: vertical; }
+        .field-full { grid-column: 1 / -1; }
+        .hint { font-size: .8rem; color: var(--color-ink-soft); margin-top: .25rem; }
+        .errors { background: #FEE2E2; color: #991B1B; padding: .8rem 1rem .8rem 2rem; border-radius: 10px; margin-bottom: 1rem; font-size: .9rem; }
+        .muted { color: var(--color-ink-soft); }
+        .empty-row { text-align: center; color: var(--color-ink-soft); padding: 2rem 0 !important; }
+        .pager { display: flex; gap: .5rem; align-items: center; justify-content: flex-end; margin-top: 1rem; font-size: .85rem; color: var(--color-ink-soft); }
     </style>
     @yield('styles')
 </head>

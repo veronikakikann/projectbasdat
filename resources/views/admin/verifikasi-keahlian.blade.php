@@ -1,178 +1,73 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Verifikasi Keahlian Pencari</title>
-</head>
-<body>
+@extends('admin.layout')
+@section('title', 'Verifikasi Keahlian')
+@section('content')
+<div class="tabs">
+    @foreach(['menunggu' => 'Menunggu', 'terverifikasi' => 'Terverifikasi', 'ditolak' => 'Ditolak', 'semua' => 'Semua'] as $key => $label)
+        <a href="{{ route('admin.verifikasi-keahlian', ['status' => $key]) }}" class="tab {{ $filter === $key ? 'is-active' : '' }}">{{ $label }}<small>({{ $jumlah[$key] }})</small></a>
+    @endforeach
+</div>
 
-    <h1>Verifikasi Keahlian Pencari Kerja</h1>
+@if($errors->any())
+    <ul class="errors">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+@endif
 
-    {{-- Pesan sukses --}}
-    @if(session('success'))
-        <p style="color: green;">
-            {{ session('success') }}
-        </p>
-    @endif
-
-    {{-- Pesan error --}}
-    @if(session('error'))
-        <p style="color: red;">
-            {{ session('error') }}
-        </p>
-    @endif
-
-    {{-- Error validasi --}}
-    @if($errors->any())
-        <div style="color: red;">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <br>
-
-    @if($data->count() > 0)
-
-        <table border="1" cellpadding="8" style="border-collapse: collapse;">
-
+<div class="panel">
+    <div class="table-wrap">
+        <table class="tbl">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nama Pencari</th>
-                    <th>Judul Keahlian</th>
-                    <th>Deskripsi</th>
-                    <th>Surat Rekomendasi</th>
-                    <th>Kategori Keahlian</th>
-                    <th>Aksi</th>
-                </tr>
+                <tr><th>Pencari</th><th>Keahlian yang Diajukan</th><th>Surat Rekomendasi</th><th>Status</th><th style="min-width:280px">Keputusan Admin</th></tr>
             </thead>
-
             <tbody>
-                @foreach($data as $item)
-
-                    <tr>
-                        <td>
-                            {{ $item->id_keahlian_pencari }}
-                        </td>
-
-                        <td>
-                            {{ $item->pencariKerja->nama ?? '-' }}
-                        </td>
-
-                        <td>
-                            {{ $item->judul_keahlian }}
-                        </td>
-
-                        <td>
-                            {{ $item->deskripsi_keahlian ?? '-' }}
-                        </td>
-
-                        <td>
-                            @if($item->file_surat_rekomendasi)
-                                <a
-                                    href="{{ route('dokumen.keahlian', $item) }}"
-                                    target="_blank"
-                                >
-                                    Lihat File
-                                </a>
-                            @else
-                                Tidak ada file
-                            @endif
-                        </td>
-
-                        <td>
-                            @if($item->keahlian)
-                                {{ $item->keahlian->nama_keahlian }}
-                            @else
-                                Belum ditentukan
-                            @endif
-                        </td>
-
-                        <td>
-
-                            <form
-                                action="{{ route('admin.verifikasi-keahlian.keputusan', $item->id_keahlian_pencari) }}"
-                                method="POST"
-                            >
-
-                                @csrf
-                                @method('PATCH')
-
-                                <label>Status:</label>
-                                <br>
-
-                                <select
-                                    name="status_verifikasi_keahlian"
-                                    required
-                                >
-                                    <option value="">
-                                        -- Pilih Status --
-                                    </option>
-
-                                    <option value="terverifikasi">
-                                        Verifikasi
-                                    </option>
-
-                                    <option value="ditolak">
-                                        Tolak
-                                    </option>
-                                </select>
-
-                                <br><br>
-
-                                <label>Kategori Keahlian:</label>
-                                <br>
-
-                                <select name="id_keahlian">
-                                    <option value="">
-                                        -- Pilih Kategori --
-                                    </option>
-
+            @forelse($data as $item)
+                <tr>
+                    <td>{{ $item->pencariKerja->nama ?? '-' }}</td>
+                    <td>
+                        <strong>{{ $item->judul_keahlian ?: '-' }}</strong>
+                        <div class="muted">{{ $item->deskripsi_keahlian ?: '' }}</div>
+                        <div class="muted" style="font-size:.78rem">Diajukan: {{ $item->tanggal_upload ?: '-' }}</div>
+                    </td>
+                    <td>
+                        @if($item->file_surat_rekomendasi)
+                            <a href="{{ route('dokumen.keahlian', $item) }}" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Lihat File</a>
+                        @else
+                            <span class="muted">Tidak ada file</span>
+                        @endif
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ $item->status_verifikasi_keahlian }}">{{ ucfirst($item->status_verifikasi_keahlian) }}</span>
+                        <div class="muted" style="font-size:.78rem;margin-top:.3rem">Kategori: {{ $item->keahlian->nama_keahlian ?? 'belum ditentukan' }}</div>
+                    </td>
+                    <td>
+                        <form action="{{ route('admin.verifikasi-keahlian.keputusan', $item->id_keahlian_pencari) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="kembali_ke" value="{{ $filter }}">
+                            <div class="field" style="margin-bottom:.5rem">
+                                <select name="id_keahlian" aria-label="Kategori keahlian">
+                                    <option value="">-- Pilih kategori --</option>
                                     @foreach($keahlian as $k)
-                                        <option
-                                            value="{{ $k->id_keahlian }}"
-                                        >
-                                            {{ $k->nama_keahlian }}
-                                        </option>
+                                        <option value="{{ $k->id_keahlian }}" @selected((int) $item->id_keahlian === (int) $k->id_keahlian)>{{ $k->nama_keahlian }}</option>
                                     @endforeach
-
                                 </select>
-
-                                <br><br>
-
-                                <button
-                                    type="submit"
-                                    onclick="return confirm('Yakin ingin menyimpan keputusan verifikasi ini?')"
-                                >
-                                    Simpan Keputusan
-                                </button>
-
-                            </form>
-
-                        </td>
-                    </tr>
-
-                @endforeach
+                            </div>
+                            <div class="field" style="margin-bottom:.6rem">
+                                <input type="text" name="kategori_baru" maxlength="100" placeholder="atau ketik kategori baru" aria-label="Kategori baru">
+                            </div>
+                            <div class="actions">
+                                <button type="submit" name="status_verifikasi_keahlian" value="terverifikasi" class="btn btn-sm btn-ok">Verifikasi</button>
+                                <button type="submit" name="status_verifikasi_keahlian" value="ditolak" class="btn btn-sm btn-danger" onclick="return confirm('Tolak pengajuan keahlian ini?')">Tolak</button>
+                                @if($item->status_verifikasi_keahlian !== 'menunggu')
+                                    <button type="submit" name="status_verifikasi_keahlian" value="menunggu" class="btn btn-sm btn-ghost">Kembalikan ke menunggu</button>
+                                @endif
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="5" class="empty-row">Tidak ada pengajuan keahlian{{ $filter !== 'semua' ? ' dengan status ' . $filter : '' }}.</td></tr>
+            @endforelse
             </tbody>
-
         </table>
-
-    @else
-
-        <p>
-            Tidak ada pengajuan keahlian yang menunggu verifikasi.
-        </p>
-
-    @endif
-
-    <br>
-
-    <a href="{{ route('admin.dashboard') }}">
-        Kembali ke Dashboard
-    </a>
-
-</body>
-</html>
+    </div>
+</div>
+@endsection

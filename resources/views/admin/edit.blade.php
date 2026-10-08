@@ -1,72 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Admin</title>
-</head>
-<body>
-
-    <h1>Edit Admin</h1>
-
+@extends('admin.layout')
+@section('title', 'Edit Admin')
+@section('content')
+<div class="panel">
     @if($errors->any())
-        <div style="color: red;">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+        <ul class="errors">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
     @endif
-
-    <form action="{{ route('admin.update', $admin->id_admin) }}" method="POST">
+    <form action="{{ route('admin.update', $admin) }}" method="POST">
         @csrf
         @method('PUT')
-
-        <label>Nama:</label><br>
-        <input
-            type="text"
-            name="nama"
-            value="{{ old('nama', $admin->nama) }}"
-            required
-        >
-        <br><br>
-
-        <label>Email:</label><br>
-        <input
-            type="email"
-            name="email"
-            value="{{ old('email', $admin->email) }}"
-            required
-        >
-        <br><br>
-
-        <label>Password:</label><br>
-        <input
-            type="password"
-            name="password"
-            placeholder="Kosongkan jika tidak diubah"
-        >
-        <br><br>
-
-        <label>Konfirmasi Password:</label><br>
-        <input type="password" name="password_confirmation" autocomplete="new-password"><br><br>
-
-        <label>Tanggal Bergabung:</label><br>
-        <input
-            type="date"
-            name="tanggal_bergabung"
-            value="{{ old('tanggal_bergabung', $admin->tanggal_bergabung) }}"
-            required
-        >
-        <br><br>
-
-        <button type="submit">Update</button>
+        <div class="form-grid">
+            <div class="field"><label for="nama">Nama</label><input type="text" id="nama" name="nama" value="{{ old('nama', $admin->nama) }}" maxlength="100" required></div>
+            <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" value="{{ old('email', $admin->email) }}" required></div>
+            <div class="field"><label for="password">Password baru</label><input type="password" id="password" name="password" minlength="6" placeholder="Kosongkan jika tidak diubah" autocomplete="new-password"></div>
+            <div class="field"><label for="password_confirmation">Konfirmasi Password</label><input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password"></div>
+            <div class="field"><label for="tanggal_bergabung">Tanggal Bergabung</label><input type="date" id="tanggal_bergabung" name="tanggal_bergabung" value="{{ old('tanggal_bergabung', $admin->tanggal_bergabung) }}" required></div>
+        </div>
+        <div class="actions" style="margin-top:1.25rem">
+            <button type="submit" class="btn">Update</button>
+            <a href="{{ route('admin.index') }}" class="btn btn-ghost">Kembali ke daftar</a>
+        </div>
     </form>
-
-    <br>
-
-    <a href="{{ route('admin.index') }}">
-        Kembali ke daftar
-    </a>
-
-</body>
-</html>
+</div>
+@endsection

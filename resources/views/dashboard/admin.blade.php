@@ -57,6 +57,16 @@
         </div>
 
         <div class="section-header">
+            <h2 class="section-title">Menu Admin</h2>
+        </div>
+        <div class="quick-grid" style="margin-bottom: 2rem;">
+            <a href="{{ route('pencari_kerja.index', ['status' => 'menunggu']) }}" class="quick-link">Verifikasi Pencari Kerja<small>Cek KTP &amp; data registrasi</small></a>
+            <a href="{{ route('pemberi_kerja.index', ['status' => 'menunggu']) }}" class="quick-link">Verifikasi Pemberi Kerja<small>Cek KTP &amp; data registrasi</small></a>
+            <a href="{{ route('admin.verifikasi-keahlian', ['status' => 'menunggu']) }}" class="quick-link">Verifikasi Keahlian<small>Tentukan kategori keahlian</small></a>
+            <a href="{{ route('pencari_kerja.index') }}" class="quick-link">Kelola Akun<small>Aktif / nonaktif akun</small></a>
+        </div>
+
+        <div class="section-header">
             <h2 class="section-title">Ringkasan Platform</h2>
         </div>
         <div class="stats-grid">
@@ -90,7 +100,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
     <!-- Sisi Kanan -->
     <div>
         <div class="side-card">
@@ -100,7 +109,7 @@
             <div class="side-list">
                 @if($totalMenunggu > 0)
                     @if($menungguPencari > 0)
-                        <a href="{{ route('pencari_kerja.index') }}" class="list-item">
+                        <a href="{{ route('pencari_kerja.index', ['status' => 'menunggu']) }}" class="list-item">
                             <div class="item-icon is-warn">{{ $menungguPencari }}</div>
                             <div>
                                 <div class="item-title">Pencari Kerja</div>
@@ -109,7 +118,7 @@
                         </a>
                     @endif
                     @if($menungguPemberi > 0)
-                        <a href="{{ route('pemberi_kerja.index') }}" class="list-item">
+                        <a href="{{ route('pemberi_kerja.index', ['status' => 'menunggu']) }}" class="list-item">
                             <div class="item-icon is-warn">{{ $menungguPemberi }}</div>
                             <div>
                                 <div class="item-title">Pemberi Kerja</div>
@@ -118,7 +127,7 @@
                         </a>
                     @endif
                     @if($menungguKeahlian > 0)
-                        <a href="{{ route('admin.verifikasi-keahlian') }}" class="list-item">
+                        <a href="{{ route('admin.verifikasi-keahlian', ['status' => 'menunggu']) }}" class="list-item">
                             <div class="item-icon is-warn">{{ $menungguKeahlian }}</div>
                             <div>
                                 <div class="item-title">Keahlian</div>
@@ -133,100 +142,6 @@
                     </div>
                 @endif
             </div>
-=======
-
-    {{-- ISI DASHBOARD --}}
-
-    <div class="container">
-
-        <h2>Menu Admin</h2>
-
-
-        <div class="menu">
-
-
-            {{-- 1. VERIFIKASI PENCARI --}}
-
-            <div class="card">
-
-                <h3>
-                    Verifikasi Pencari Kerja
-                </h3>
-
-                <p>
-                    Memeriksa dan memverifikasi
-                    data pencari kerja yang
-                    melakukan registrasi.
-                </p>
-
-                <a href="{{ route('pencari_kerja.index') }}" class="btn">Verifikasi</a>
-
-            </div>
-
-
-            {{-- 2. VERIFIKASI PEMBERI --}}
-
-            <div class="card">
-
-                <h3>
-                    Verifikasi Pemberi Kerja
-                </h3>
-
-                <p>
-                    Memeriksa dan memverifikasi
-                    data pemberi kerja yang
-                    melakukan registrasi.
-                </p>
-
-                <a href="{{ route('pemberi_kerja.index') }}" class="btn">Verifikasi</a>
-
-            </div>
-
-
-            {{-- 3. VERIFIKASI KEAHLIAN --}}
-
-            <div class="card">
-
-                <h3>
-                    Verifikasi Keahlian
-                </h3>
-
-                <p>
-                    Memeriksa dan memverifikasi
-                    keahlian yang diajukan
-                    oleh pencari kerja.
-                </p>
-
-                <a href="{{ route('keahlian_pencari_kerja.index') }}" class="btn">Verifikasi</a>
-
-            </div>
-
-
-            {{-- 4. KELOLA AKUN --}}
-
-            <div class="card">
-
-                <h3>
-                    Kelola Akun
-                </h3>
-
-                <p>
-                    Mengelola status akun
-                    pencari kerja dan
-                    pemberi kerja.
-                </p>
-
-                <a
-                    href="#"
-                    class="btn"
-                >
-                    Kelola Akun
-                </a>
-
-            </div>
-
-
->>>>>>> d645792e339e551143d96b5239c8b5a09c802856
         </div>
 
         <div class="side-card" style="margin-top: 1.5rem;">
