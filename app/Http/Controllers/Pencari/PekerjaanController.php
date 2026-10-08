@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Pencari;
 
 use App\Http\Controllers\Controller;
-use App\Models\Keahlian;
 use App\Models\Pekerjaan;
 use App\Models\PencariKerja;
 use Illuminate\Http\Request;
@@ -66,10 +65,6 @@ class PekerjaanController extends Controller
         |--------------------------------------------------------------------------
         | Filter kategori keahlian
         |--------------------------------------------------------------------------
-        |
-        | Hanya kategori yang memang dimiliki Pencari secara terverifikasi
-        | yang dapat dipilih.
-        |
         */
 
         if ($request->filled('id_keahlian')) {
@@ -110,10 +105,6 @@ class PekerjaanController extends Controller
             $latitude = (float) $pencari->latitude;
             $longitude = (float) $pencari->longitude;
 
-            /*
-             * Bounding box sederhana untuk mengambil kandidat
-             * sebelum dihitung dengan Haversine.
-             */
             $latitudeMargin = rad2deg(10 / 6371);
 
             $pekerjaan = $query
@@ -181,12 +172,6 @@ class PekerjaanController extends Controller
                 ->sortBy('jarak_km')
                 ->values();
         } else {
-            /*
-             * Fallback:
-             * Kalau koordinat Pencari belum ada,
-             * tetap tampilkan pekerjaan yang cocok berdasarkan
-             * keahlian terverifikasi.
-             */
             $pekerjaan = $query
                 ->orderByDesc('tanggal_posting')
                 ->get();
@@ -203,8 +188,31 @@ class PekerjaanController extends Controller
 
     public function show(Pekerjaan $pekerjaan)
     {
+        /*
+         * Ambil lamaran milik Pencari yang sedang login
+         * untuk lowongan ini.
+         */
+        $lamaranSaya = $pekerjaan
+            ->lamaran()
+            ->where(
+                'id_pencari',
+                session('user_id')
+            )
+            ->first();
+
+        $sudahMelamar = $lamaranSaya !== null;
+
+        /*
+         * Pencari boleh membuka:
+         * 1. lowongan yang masih tersedia, atau
+         * 2. lowongan yang memang sudah pernah dia lamar.
+         *
+         * Ini membuat detail tetap bisa dibuka setelah
+         * lowongan berubah menjadi penuh/sedang dikerjakan.
+         */
         abort_unless(
-            $pekerjaan->status_pekerjaan === 'tersedia',
+            $pekerjaan->status_pekerjaan === 'tersedia'
+            || $sudahMelamar,
             404
         );
 
@@ -213,21 +221,15 @@ class PekerjaanController extends Controller
             'keahlian',
         ]);
 
-        $sudahMelamar = $pekerjaan
-            ->lamaran()
-            ->where(
-                'id_pencari',
-                session('user_id')
-            )
-            ->exists();
-
-        $jumlahDiterima = $pekerjaan->jumlahDiterima();
+        $jumlahDiterima = $pekerjaan
+            ->jumlahDiterima();
 
         return view(
             'pencari.pekerjaan.show',
             compact(
                 'pekerjaan',
                 'sudahMelamar',
+                'lamaranSaya',
                 'jumlahDiterima'
             )
         );

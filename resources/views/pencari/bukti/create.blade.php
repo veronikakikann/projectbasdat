@@ -1,136 +1,351 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('pencari.layout')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bukti Pekerjaan</title>
-</head>
+@section('title', 'Upload Bukti Kerja')
 
-<body>
+@section('content')
 
-<div style="max-width:700px;margin:40px auto;">
+<style>
+    .page-header {
+        margin-bottom: 1.5rem;
+    }
 
-    <h2>Bukti Pekerjaan</h2>
+    .page-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--color-ink);
+        margin-bottom: 0.4rem;
+    }
 
-    <p>
-        <strong>Pekerjaan:</strong>
+    .page-desc {
+        color: var(--color-ink-soft);
+        font-size: 0.9rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .alert-error {
+        background: #FED7D7;
+        border: 1px solid #EF4444;
+        color: #C53030;
+    }
+
+    .form-card {
+        background: white;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        max-width: 760px;
+    }
+
+    .job-summary {
+        background: #F7FBFF;
+        border: 1px solid #DCEEF9;
+        border-radius: 10px;
+        padding: 1.2rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-title {
+        color: #55B4EA;
+        font-size: 0.78rem;
+        font-weight: 800;
+        margin-bottom: 0.45rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .summary-job {
+        color: var(--color-ink);
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin-bottom: 0.35rem;
+    }
+
+    .summary-employer {
+        color: var(--color-ink-soft);
+        font-size: 0.85rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .summary-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        background: #D1FAE5;
+        color: #047857;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .form-intro {
+        color: var(--color-ink-soft);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        color: var(--color-ink);
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .required {
+        color: #EF4444;
+    }
+
+    .file-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: white;
+        color: var(--color-ink);
+        font-size: 0.85rem;
+        box-sizing: border-box;
+    }
+
+    .file-input:focus,
+    .textarea-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(85, 180, 234, 0.12);
+    }
+
+    .file-help {
+        margin-top: 0.5rem;
+        color: var(--color-ink-soft);
+        font-size: 0.78rem;
+        line-height: 1.5;
+    }
+
+    .textarea-input {
+        width: 100%;
+        min-height: 130px;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: white;
+        color: var(--color-ink);
+        font-family: inherit;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.7rem;
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1rem;
+        border: 1px solid var(--color-border);
+        background: white;
+        color: var(--color-ink);
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .btn-back:hover {
+        background: #F8FAFC;
+    }
+
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1rem;
+        border: none;
+        background: var(--color-primary);
+        color: white;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        background: var(--color-primary-dark);
+    }
+
+    .error-list {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+
+    @media (max-width: 600px) {
+        .form-card {
+            padding: 1.1rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .btn-back,
+        .btn-submit {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">
+        Upload Bukti Kerja
+    </h1>
+
+```
+<p class="page-desc">
+    Kirim bukti pengerjaan kepada pemberi kerja setelah pekerjaan selesai dikerjakan.
+</p>
+```
+
+</div>
+
+@if($errors->any()) <div class="alert alert-error"> <strong>Terdapat kesalahan:</strong>
+
+```
+    <ul class="error-list">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+```
+
+@endif
+
+<div class="form-card">
+
+```
+<div class="job-summary">
+    <div class="summary-title">
+        Pekerjaan
+    </div>
+
+    <div class="summary-job">
         {{ $lamaran->pekerjaan->nama_pekerjaan ?? '-' }}
-    </p>
+    </div>
 
-    <p>
-        <strong>Status Lamaran:</strong>
-        {{ ucfirst($lamaran->status_lamaran ?? '-') }}
-    </p>
+    <div class="summary-employer">
+        {{ $lamaran->pekerjaan->pemberiKerja->nama ?? 'Pemberi Kerja' }}
+    </div>
 
-    @if($errors->any())
+    <span class="summary-status">
+        ✓ Lamaran Diterima
+    </span>
+</div>
 
-        <div style="background:#f8d7da;padding:15px;margin-bottom:15px;">
+<div class="form-intro">
+    Silakan unggah bukti bahwa pekerjaan telah selesai dikerjakan.
+    Bukti akan diperiksa oleh pemberi kerja sebelum pembayaran dilakukan.
+</div>
 
-            <strong>Terdapat kesalahan:</strong>
+<form
+    action="{{ route('pencari.bukti.store', $lamaran->id_lamaran) }}"
+    method="POST"
+    enctype="multipart/form-data"
+>
+    @csrf
 
-            <ul>
-
-                @foreach($errors->all() as $error)
-
-                    <li>{{ $error }}</li>
-
-                @endforeach
-
-            </ul>
-
-        </div>
-
-    @endif
-
-    @if(session('success'))
-
-        <div style="background:#d4edda;padding:15px;margin-bottom:15px;">
-
-            {{ session('success') }}
-
-        </div>
-
-    @endif
-
-    <p>
-        Silakan upload bukti bahwa pekerjaan telah selesai.
-        Setelah bukti dikirim, pemberi kerja akan memeriksa
-        dan melakukan pembayaran.
-    </p>
-
-    <hr>
-
-    <form
-        action="{{ route('pencari.bukti.store', $lamaran->id_lamaran) }}"
-        method="POST"
-        enctype="multipart/form-data"
-    >
-
-        @csrf
-
-        <div style="margin-bottom:15px;">
-
-            <label for="foto_bukti_kerja">
-                <strong>Foto/Scan Bukti Pekerjaan</strong>
-            </label>
-
-            <br>
-
-            <input
-                type="file"
-                id="foto_bukti_kerja"
-                name="foto_bukti_kerja"
-                accept=".jpg,.jpeg,.png,.pdf"
-                required
-            >
-
-            <p>
-                <small>
-                    Format: JPG, JPEG, PNG, atau PDF.
-                    Maksimal 2 MB.
-                </small>
-            </p>
-
-        </div>
-
-        <div style="margin-bottom:15px;">
-
-            <label for="catatan">
-                <strong>Catatan</strong>
-            </label>
-
-            <br>
-
-            <textarea
-                id="catatan"
-                name="catatan"
-                rows="5"
-                maxlength="1000"
-                style="width:100%;"
-                placeholder="Tambahkan catatan mengenai pekerjaan jika diperlukan..."
-            >{{ old('catatan') }}</textarea>
-
-        </div>
-
-        <button
-            type="submit"
-            onclick="return confirm('Yakin bukti pekerjaan sudah benar dan ingin dikirim?')"
+    <div class="form-group">
+        <label
+            for="foto_bukti_kerja"
+            class="form-label"
         >
-            Kirim Bukti Pekerjaan
-        </button>
+            Bukti Pekerjaan <span class="required">*</span>
+        </label>
+
+        <input
+            type="file"
+            id="foto_bukti_kerja"
+            name="foto_bukti_kerja"
+            class="file-input"
+            accept=".jpg,.jpeg,.png,.pdf"
+            required
+        >
+
+        <div class="file-help">
+            Format yang diperbolehkan: JPG, JPEG, PNG, atau PDF.
+            Ukuran maksimal 2 MB.
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label
+            for="catatan"
+            class="form-label"
+        >
+            Catatan
+        </label>
+
+        <textarea
+            id="catatan"
+            name="catatan"
+            class="textarea-input"
+            maxlength="1000"
+            placeholder="Tambahkan catatan mengenai pekerjaan jika diperlukan..."
+        >{{ old('catatan') }}</textarea>
+
+        <div class="file-help">
+            Maksimal 1.000 karakter.
+        </div>
+    </div>
+
+    <div class="form-actions">
 
         <a
             href="{{ route('pencari.lamaran-saya') }}"
-            style="margin-left:10px;"
+            class="btn-back"
         >
             Kembali
         </a>
 
-    </form>
+        <button
+            type="submit"
+            class="btn-submit"
+            onclick="return confirm('Yakin bukti pekerjaan sudah benar dan ingin dikirim?')"
+        >
+            📤 Kirim Bukti Pekerjaan
+        </button>
+
+    </div>
+</form>
+```
 
 </div>
 
-</body>
-
-</html>
+@endsection

@@ -126,30 +126,106 @@
 <div class="page-header">
     <div>
         <h1 class="job-title-large">{{ $pekerjaan->nama_pekerjaan }}</h1>
+
         <span class="status-badge status-{{ strtolower($pekerjaan->status_pekerjaan) }}">
             Status: {{ str_replace('_', ' ', $pekerjaan->status_pekerjaan) }}
         </span>
     </div>
-    <div style="display: flex; gap: 0.75rem;">
+
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+
+        {{-- Edit hanya bisa dilakukan saat lowongan masih tersedia --}}
         @if($pekerjaan->status_pekerjaan === 'tersedia')
-            <a href="{{ route('pemberi.pekerjaan.edit', $pekerjaan->id_pekerjaan) }}" class="btn-outline">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <a
+                href="{{ route('pemberi.pekerjaan.edit', $pekerjaan->id_pekerjaan) }}"
+                class="btn-outline"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+
                 Edit Lowongan
             </a>
         @endif
-        
-        <!-- Tombol Pembayaran muncul saat pekerjaan dimulai atau selesai -->
+
+
+        {{-- Mulai pekerjaan hanya jika sudah ada pekerja yang diterima --}}
+        @if(
+            in_array($pekerjaan->status_pekerjaan, ['tersedia', 'penuh'], true)
+            && $pekerja->isNotEmpty()
+        )
+            <form
+                action="{{ route('pemberi.pekerjaan.mulai', $pekerjaan->id_pekerjaan) }}"
+                method="POST"
+                style="margin: 0;"
+                onsubmit="return confirm('Yakin ingin memulai pekerjaan ini? Setelah dimulai, pekerja dapat mengunggah bukti pengerjaan.');"
+            >
+                @csrf
+                @method('PATCH')
+
+                <button
+                    type="submit"
+                    class="btn-outline btn-success"
+                    style="cursor: pointer;"
+                >
+                    ▶ Mulai Pekerjaan
+                </button>
+            </form>
+        @endif
+
+
+        {{-- Tombol pembayaran muncul setelah pekerjaan dimulai --}}
         @if(in_array($pekerjaan->status_pekerjaan, ['sedang_dikerjakan', 'selesai']))
-            <a href="{{ route('pemberi.bukti.create', $pekerjaan->id_pekerjaan) }}" class="btn-outline btn-success">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <a
+                href="{{ route('pemberi.bukti.create', $pekerjaan->id_pekerjaan) }}"
+                class="btn-outline btn-success"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                >
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+
                 Selesaikan Pembayaran
             </a>
         @endif
 
-        <a href="{{ route('pemberi.pelamar.index', $pekerjaan->id_pekerjaan) }}" class="btn-primary">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+
+        <a
+            href="{{ route('pemberi.pelamar.index', $pekerjaan->id_pekerjaan) }}"
+            class="btn-primary"
+        >
+            <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="none"
+            >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+
             Lihat Pelamar ({{ $jumlahPelamar }})
         </a>
+
     </div>
 </div>
 

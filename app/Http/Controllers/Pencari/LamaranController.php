@@ -44,12 +44,11 @@ class LamaranController extends Controller
     ) {
         $idPencari = session('user_id');
 
-        if (
-            ! PencariKerja::where(
-                'id_pencari',
-                $idPencari
-            )->exists()
-        ) {
+        $pencari = PencariKerja::find(
+            $idPencari
+        );
+
+        if (!$pencari) {
             return redirect()
                 ->route('login')
                 ->with(
@@ -61,7 +60,8 @@ class LamaranController extends Controller
         $error = DB::transaction(
             function () use (
                 $pekerjaan,
-                $idPencari
+                $idPencari,
+                $pencari
             ) {
                 $pekerjaan = Pekerjaan::lockForUpdate()
                     ->findOrFail(
@@ -97,7 +97,7 @@ class LamaranController extends Controller
                         'status_lamaran',
                         [
                             'diterima',
-                            'selesai'
+                            'selesai',
                         ]
                     )
                     ->count();
@@ -123,12 +123,17 @@ class LamaranController extends Controller
                         now(),
                 ]);
 
+                /*
+                 * Notifikasi untuk Pemberi Kerja
+                 * saat ada lamaran baru.
+                 */
                 Notifikasi::kirim(
                     $pekerjaan->id_pemberi,
                     'pemberi_kerja',
-                    'Ada pelamar baru untuk pekerjaan "' .
-                    $pekerjaan->nama_pekerjaan .
-                    '".'
+                    $pencari->nama
+                    . ' mengajukan lamaran untuk pekerjaan "'
+                    . $pekerjaan->nama_pekerjaan
+                    . '".'
                 );
 
                 return null;
@@ -165,8 +170,7 @@ class LamaranController extends Controller
             function () use (
                 $lamaran
             ): ?string {
-
-                Pekerjaan::lockForUpdate()
+                $pekerjaan = Pekerjaan::lockForUpdate()
                     ->findOrFail(
                         $lamaran->id_pekerjaan
                     );
@@ -189,6 +193,26 @@ class LamaranController extends Controller
                 ) {
                     return 'Lamaran yang sudah diproses tidak dapat dibatalkan.';
                 }
+
+                $pencari = PencariKerja::find(
+                    $current->id_pencari
+                );
+
+                $namaPencari = $pencari
+                    ? $pencari->nama
+                    : 'Pencari Kerja';
+
+                /*
+                 * Simpan notifikasi sebelum lamaran dihapus.
+                 */
+                Notifikasi::kirim(
+                    $pekerjaan->id_pemberi,
+                    'pemberi_kerja',
+                    $namaPencari
+                    . ' membatalkan lamaran untuk pekerjaan "'
+                    . $pekerjaan->nama_pekerjaan
+                    . '".'
+                );
 
                 $current->delete();
 

@@ -31,8 +31,14 @@ class PekerjaanController extends Controller
             ->where('id_pemberi', session('user_id'))
             ->orderByDesc('tanggal_posting');
 
-        if (is_string($status) && isset(Pekerjaan::LABEL_STATUS[$status])) {
-            $query->where('status_pekerjaan', $status);
+        if (
+            is_string($status)
+            && isset(Pekerjaan::LABEL_STATUS[$status])
+        ) {
+            $query->where(
+                'status_pekerjaan',
+                $status
+            );
         } else {
             $status = null;
         }
@@ -44,7 +50,7 @@ class PekerjaanController extends Controller
     }
 
     // ---------------------------------------------------------------
-    // DETAIL LOWONGAN (item 17): info, pekerja yang diterima, bukti, rating
+    // DETAIL LOWONGAN (item 17)
     // ---------------------------------------------------------------
     public function show(Pekerjaan $pekerjaan)
     {
@@ -52,19 +58,42 @@ class PekerjaanController extends Controller
 
         $pekerjaan->load('keahlian');
 
-        $jumlahPelamar = $pekerjaan->lamaran()->count();
+        $jumlahPelamar = $pekerjaan
+            ->lamaran()
+            ->count();
 
-        $pekerja = Lamaran::with(['pencariKerja', 'buktiPenyelesaian'])
-            ->where('id_pekerjaan', $pekerjaan->id_pekerjaan)
-            ->whereIn('status_lamaran', ['diterima', 'selesai'])
+        $pekerja = Lamaran::with([
+            'pencariKerja',
+            'buktiPenyelesaian',
+        ])
+            ->where(
+                'id_pekerjaan',
+                $pekerjaan->id_pekerjaan
+            )
+            ->whereIn(
+                'status_lamaran',
+                ['diterima', 'selesai']
+            )
             ->get();
 
-        $idLamaran = $pekerja->pluck('id_lamaran');
+        $idLamaran = $pekerja->pluck(
+            'id_lamaran'
+        );
 
-        // rating yang SAYA berikan ke tiap pekerja, di-index per id_lamaran
-        $ratingKu = Rating::where('arah_rating', 'pemberi_ke_pekerja')
-            ->where('pemberi_rating', session('user_id'))
-            ->whereIn('id_lamaran', $idLamaran)
+        // Rating yang saya berikan ke tiap pekerja,
+        // di-index berdasarkan id_lamaran.
+        $ratingKu = Rating::where(
+            'arah_rating',
+            'pemberi_ke_pekerja'
+        )
+            ->where(
+                'pemberi_rating',
+                session('user_id')
+            )
+            ->whereIn(
+                'id_lamaran',
+                $idLamaran
+            )
             ->get()
             ->keyBy('id_lamaran');
 
@@ -84,7 +113,9 @@ class PekerjaanController extends Controller
     // ---------------------------------------------------------------
     public function create()
     {
-        $keahlian = Keahlian::orderBy('nama_keahlian')->get();
+        $keahlian = Keahlian::orderBy(
+            'nama_keahlian'
+        )->get();
 
         return view(
             'pemberi.pekerjaan.create',
@@ -92,49 +123,63 @@ class PekerjaanController extends Controller
         );
     }
 
-    public function store(Request $request)
-    {
+    public function store(
+        Request $request
+    ) {
         $data = $request->validate(
             $this->rules()
         );
 
-        $pekerjaan = DB::transaction(function () use ($data) {
-            // id_pemberi, status awal, dan tanggal_posting tidak diambil dari form
-            $pekerjaan = Pekerjaan::create($data + [
-                'id_pemberi' => session('user_id'),
-                'status_pekerjaan' => 'tersedia',
-            ]);
+        $pekerjaan = DB::transaction(
+            function () use ($data) {
+                $pekerjaan = Pekerjaan::create([
+                    ...$data,
 
-            /*
-             * Kirim notifikasi ke Pencari Kerja yang memiliki
-             * keahlian TERverifikasi yang sesuai dengan lowongan ini.
-             */
-            $pencariCocok = KeahlianPencariKerja::where(
-                'id_keahlian',
-                $pekerjaan->id_keahlian
-            )
-                ->where(
-                    'status_verifikasi_keahlian',
-                    'terverifikasi'
-                )
-                ->pluck('id_pencari')
-                ->unique();
+                    'id_pemberi' =>
+                        session('user_id'),
 
-            foreach ($pencariCocok as $idPencari) {
-                Notifikasi::kirim(
-                    $idPencari,
-                    'pencari_kerja',
-                    'Ada lowongan baru yang sesuai dengan keahlian kamu: "'
-                    . $pekerjaan->nama_pekerjaan
-                    . '". Yuk cek lowongan tersebut di Cari Pekerjaan.'
-                );
+                    'status_pekerjaan' =>
+                        'tersedia',
+
+                    'tanggal_posting' =>
+                        now(),
+                ]);
+
+                /*
+                 * Kirim notifikasi ke Pencari Kerja
+                 * yang memiliki keahlian terverifikasi
+                 * sesuai dengan lowongan.
+                 */
+                $pencariCocok =
+                    KeahlianPencariKerja::where(
+                        'id_keahlian',
+                        $pekerjaan->id_keahlian
+                    )
+                        ->where(
+                            'status_verifikasi_keahlian',
+                            'terverifikasi'
+                        )
+                        ->pluck('id_pencari')
+                        ->unique();
+
+                foreach ($pencariCocok as $idPencari) {
+                    Notifikasi::kirim(
+                        $idPencari,
+                        'pencari_kerja',
+                        'Ada lowongan baru yang sesuai dengan keahlian kamu: "'
+                        . $pekerjaan->nama_pekerjaan
+                        . '". Yuk cek lowongan tersebut di Cari Lowongan.'
+                    );
+                }
+
+                return $pekerjaan;
             }
-
-            return $pekerjaan;
-        });
+        );
 
         return redirect()
-            ->route('pemberi.pekerjaan.index')
+            ->route(
+                'pemberi.pekerjaan.index'
+            )
             ->with(
                 'success',
                 'Lowongan berhasil dipublikasikan.'
@@ -145,7 +190,10 @@ class PekerjaanController extends Controller
     {
         $this->milik($pekerjaan);
 
-        if ($pekerjaan->status_pekerjaan !== 'tersedia') {
+        if (
+            $pekerjaan->status_pekerjaan !==
+            'tersedia'
+        ) {
             return redirect()
                 ->route(
                     'pemberi.pekerjaan.show',
@@ -157,14 +205,17 @@ class PekerjaanController extends Controller
                 );
         }
 
-        $keahlian = Keahlian::orderBy('nama_keahlian')->get();
+        $keahlian = Keahlian::orderBy(
+            'nama_keahlian'
+        )->get();
 
         return view(
             'pemberi.pekerjaan.edit',
             [
                 'pekerjaan' => $pekerjaan,
                 'keahlian' => $keahlian,
-                'sudahDiterima' => $pekerjaan->jumlahDiterima(),
+                'sudahDiterima' =>
+                    $pekerjaan->jumlahDiterima(),
             ]
         );
     }
@@ -191,13 +242,20 @@ class PekerjaanController extends Controller
 
                 $this->milik($current);
 
-                if ($current->status_pekerjaan !== 'tersedia') {
+                if (
+                    $current->status_pekerjaan !==
+                    'tersedia'
+                ) {
                     return 'Lowongan hanya bisa diedit saat statusnya Aktif.';
                 }
 
-                $accepted = $current->jumlahDiterima();
+                $accepted =
+                    $current->jumlahDiterima();
 
-                if ($data['jumlah_pekerja'] < $accepted) {
+                if (
+                    $data['jumlah_pekerja']
+                    < $accepted
+                ) {
                     throw ValidationException::withMessages([
                         'jumlah_pekerja' =>
                             'Kuota tidak boleh lebih kecil dari jumlah pekerja yang diterima.',
@@ -211,7 +269,8 @@ class PekerjaanController extends Controller
                     (int) $current->jumlah_pekerja
                 ) {
                     $current->update([
-                        'status_pekerjaan' => 'penuh',
+                        'status_pekerjaan' =>
+                            'penuh',
                     ]);
 
                     $current->tolakPelamarMenunggu(
@@ -229,17 +288,23 @@ class PekerjaanController extends Controller
                 $pekerjaan
             )
             ->with(
-                $error ? 'error' : 'success',
-                $error ?? 'Lowongan diperbarui.'
+                $error
+                    ? 'error'
+                    : 'success',
+                $error
+                    ?? 'Lowongan diperbarui.'
             );
     }
 
-    public function destroy(Pekerjaan $pekerjaan)
-    {
+    public function destroy(
+        Pekerjaan $pekerjaan
+    ) {
         $this->milik($pekerjaan);
 
         $error = DB::transaction(
-            function () use ($pekerjaan): ?string {
+            function () use (
+                $pekerjaan
+            ): ?string {
                 $current = Pekerjaan::lockForUpdate()
                     ->findOrFail(
                         $pekerjaan->id_pekerjaan
@@ -247,7 +312,9 @@ class PekerjaanController extends Controller
 
                 $this->milik($current);
 
-                if ($current->lamaran()->exists()) {
+                if (
+                    $current->lamaran()->exists()
+                ) {
                     return 'Lowongan ini sudah punya pelamar, jadi tidak bisa dihapus.';
                 }
 
@@ -258,9 +325,14 @@ class PekerjaanController extends Controller
         );
 
         return $error
-            ? back()->with('error', $error)
+            ? back()->with(
+                'error',
+                $error
+            )
             : redirect()
-                ->route('pemberi.pekerjaan.index')
+                ->route(
+                    'pemberi.pekerjaan.index'
+                )
                 ->with(
                     'success',
                     'Lowongan dihapus.'
@@ -269,18 +341,22 @@ class PekerjaanController extends Controller
 
     // ---------------------------------------------------------------
     // PROGRESS PEKERJAAN (item 16 & 20)
-    // Aktif -> (Penuh) -> Sedang Dikerjakan -> Selesai
-    // | Aktif/Penuh -> Ditutup
+    // Aktif -> Penuh -> Sedang Dikerjakan -> Selesai
+    // Aktif/Penuh -> Ditutup
     // ---------------------------------------------------------------
 
-    // Mulai pekerjaan: butuh minimal 1 pekerja diterima.
+    // Mulai pekerjaan:
+    // butuh minimal 1 pekerja diterima.
     // Pelamar yang masih menunggu ditolak.
-    public function mulai(Pekerjaan $pekerjaan)
-    {
+    public function mulai(
+        Pekerjaan $pekerjaan
+    ) {
         $this->milik($pekerjaan);
 
         $error = DB::transaction(
-            function () use ($pekerjaan) {
+            function () use (
+                $pekerjaan
+            ) {
                 $p = Pekerjaan::lockForUpdate()
                     ->findOrFail(
                         $pekerjaan->id_pekerjaan
@@ -303,7 +379,9 @@ class PekerjaanController extends Controller
                     )
                     ->get();
 
-                if ($pekerja->isEmpty()) {
+                if (
+                    $pekerja->isEmpty()
+                ) {
                     return 'Belum ada pelamar yang diterima. Terima minimal satu pelamar dulu.';
                 }
 
@@ -331,7 +409,10 @@ class PekerjaanController extends Controller
         );
 
         return $error
-            ? back()->with('error', $error)
+            ? back()->with(
+                'error',
+                $error
+            )
             : back()->with(
                 'success',
                 'Pekerjaan dimulai. Status: Sedang dikerjakan.'
@@ -340,12 +421,15 @@ class PekerjaanController extends Controller
 
     // Tutup lowongan = batalkan rekrutmen.
     // Hanya jika belum ada pekerja diterima.
-    public function tutup(Pekerjaan $pekerjaan)
-    {
+    public function tutup(
+        Pekerjaan $pekerjaan
+    ) {
         $this->milik($pekerjaan);
 
         $error = DB::transaction(
-            function () use ($pekerjaan) {
+            function () use (
+                $pekerjaan
+            ) {
                 $p = Pekerjaan::lockForUpdate()
                     ->findOrFail(
                         $pekerjaan->id_pekerjaan
@@ -361,7 +445,9 @@ class PekerjaanController extends Controller
                     return 'Lowongan tidak bisa ditutup pada status ini.';
                 }
 
-                if ($p->jumlahDiterima() > 0) {
+                if (
+                    $p->jumlahDiterima() > 0
+                ) {
                     return 'Sudah ada pekerja yang diterima. Gunakan "Mulai Pekerjaan" untuk melanjutkan.';
                 }
 
@@ -370,7 +456,8 @@ class PekerjaanController extends Controller
                 );
 
                 $p->update([
-                    'status_pekerjaan' => 'ditutup',
+                    'status_pekerjaan' =>
+                        'ditutup',
                 ]);
 
                 return null;
@@ -378,7 +465,10 @@ class PekerjaanController extends Controller
         );
 
         return $error
-            ? back()->with('error', $error)
+            ? back()->with(
+                'error',
+                $error
+            )
             : back()->with(
                 'success',
                 'Lowongan ditutup.'
@@ -422,9 +512,11 @@ class PekerjaanController extends Controller
         ];
     }
 
-    // Pastikan lowongan ini benar-benar milik pemberi yang sedang login
-    private function milik(Pekerjaan $pekerjaan): void
-    {
+    // Pastikan lowongan ini benar-benar milik
+    // pemberi yang sedang login.
+    private function milik(
+        Pekerjaan $pekerjaan
+    ): void {
         abort_unless(
             (int) $pekerjaan->id_pemberi ===
             (int) session('user_id'),

@@ -138,6 +138,40 @@
         font-weight: 700;
     }
 
+    .employer-contact {
+        margin-top: 1.25rem;
+        padding: 1.15rem 1.25rem;
+        background: #F7FBFF;
+        border: 1px solid #DCEEF9;
+        border-radius: 10px;
+    }
+
+    .employer-contact-title {
+        color: #55B4EA;
+        font-size: 0.8rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .employer-contact-name {
+        color: var(--color-ink);
+        font-size: 1rem;
+        font-weight: 800;
+        margin-bottom: 0.8rem;
+    }
+
+    .employer-contact-info {
+        display: grid;
+        gap: 0.45rem;
+        color: var(--color-ink-soft);
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    .employer-contact-info strong {
+        color: var(--color-ink);
+    }
+
     .application-footer {
         margin-top: 1.25rem;
         padding-top: 1rem;
@@ -163,6 +197,40 @@
 
     .btn-detail:hover {
         background: var(--color-primary-dark);
+    }
+
+    .btn-proof {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        background: #16A34A;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .btn-proof:hover {
+        background: #15803D;
+    }
+
+    .btn-rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        background: #F59E0B;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .btn-rating:hover {
+        background: #D97706;
     }
 
     .btn-cancel {
@@ -231,220 +299,295 @@
             align-items: stretch;
         }
 
-        .btn-detail {
+        .btn-detail,
+        .btn-proof,
+        .btn-rating {
             justify-content: center;
         }
     }
 </style>
 
-
 <div class="page-header">
 
-    <h1 class="page-title">
-        Lamaran Saya
-    </h1>
+```
+<h1 class="page-title">
+    Lamaran Saya
+</h1>
 
-    <p class="page-desc">
-        Lihat seluruh lamaran pekerjaan yang pernah kamu kirim.
-    </p>
+<p class="page-desc">
+    Lihat seluruh lamaran pekerjaan yang pernah kamu kirim.
+</p>
+```
 
 </div>
 
-
-@if(session('success'))
-    <div class="alert alert-success">
-        ✅ {{ session('success') }}
-    </div>
+@if(session('success')) <div class="alert alert-success">
+✅ {{ session('success') }} </div>
 @endif
 
-
-@if(session('error'))
-    <div class="alert alert-error">
-        ⚠️ {{ session('error') }}
-    </div>
+@if(session('error')) <div class="alert alert-error">
+⚠️ {{ session('error') }} </div>
 @endif
-
 
 @if($lamaran->isNotEmpty())
 
-    <div class="application-list">
+```
+<div class="application-list">
 
-        @foreach($lamaran as $item)
+    @foreach($lamaran as $item)
 
-            <div class="application-card">
+        <div class="application-card">
 
-                <div class="application-top">
+            <div class="application-top">
 
-                    <div>
+                <div>
 
-                        <a
-                            href="{{ route('pekerjaan.show', $item->pekerjaan->id_pekerjaan) }}"
-                            class="job-title"
-                        >
-                            {{ $item->pekerjaan->nama_pekerjaan }}
-                        </a>
+                    <a
+                        href="{{ route('pekerjaan.show', $item->pekerjaan->id_pekerjaan) }}"
+                        class="job-title"
+                    >
+                        {{ $item->pekerjaan->nama_pekerjaan }}
+                    </a>
 
-                        <div class="employer">
-                            {{ $item->pekerjaan->pemberiKerja->nama ?? 'Pemberi Kerja' }}
-                        </div>
-
-                    </div>
-
-
-                    @if($item->status_lamaran === 'menunggu')
-
-                        <span class="status-badge status-menunggu">
-                            Menunggu
-                        </span>
-
-                    @elseif($item->status_lamaran === 'diterima')
-
-                        <span class="status-badge status-diterima">
-                            Diterima
-                        </span>
-
-                    @elseif($item->status_lamaran === 'ditolak')
-
-                        <span class="status-badge status-ditolak">
-                            Ditolak
-                        </span>
-
-                    @elseif($item->status_lamaran === 'selesai')
-
-                        <span class="status-badge status-selesai">
-                            Selesai
-                        </span>
-
-                    @else
-
-                        <span class="status-badge">
-                            {{ $item->status_lamaran }}
-                        </span>
-
-                    @endif
-
-                </div>
-
-
-                <div class="application-info">
-
-                    <div>
-
-                        <span class="info-label">
-                            Lokasi
-                        </span>
-
-                        <div class="info-value">
-                            {{ $item->pekerjaan->lokasi ?? '-' }}
-                        </div>
-
-                    </div>
-
-
-                    <div>
-
-                        <span class="info-label">
-                            Tanggal Melamar
-                        </span>
-
-                        <div class="info-value">
-                            {{ \Carbon\Carbon::parse($item->tanggal_submit)->locale('id')->translatedFormat('d F Y, H:i') }}
-                        </div>
-
-                    </div>
-
-
-                    <div>
-
-                        <span class="info-label">
-                            Keahlian
-                        </span>
-
-                        <div class="info-value">
-                            {{ $item->pekerjaan->keahlian->nama_keahlian ?? '-' }}
-                        </div>
-
+                    <div class="employer">
+                        {{ $item->pekerjaan->pemberiKerja->nama ?? 'Pemberi Kerja' }}
                     </div>
 
                 </div>
 
+                @if($item->status_lamaran === 'menunggu')
 
-                <div class="application-footer">
+                    <span class="status-badge status-menunggu">
+                        Menunggu
+                    </span>
 
-                    <div style="color:var(--color-ink-soft); font-size:.8rem;">
+                @elseif($item->status_lamaran === 'diterima')
 
-                        Diajukan
-                        {{ \Carbon\Carbon::parse($item->tanggal_submit)->locale('id')->diffForHumans() }}
+                    <span class="status-badge status-diterima">
+                        Diterima
+                    </span>
 
+                @elseif($item->status_lamaran === 'ditolak')
+
+                    <span class="status-badge status-ditolak">
+                        Ditolak
+                    </span>
+
+                @elseif($item->status_lamaran === 'selesai')
+
+                    <span class="status-badge status-selesai">
+                        Selesai
+                    </span>
+
+                @else
+
+                    <span class="status-badge">
+                        {{ $item->status_lamaran }}
+                    </span>
+
+                @endif
+
+            </div>
+
+            <div class="application-info">
+
+                <div>
+
+                    <span class="info-label">
+                        Lokasi
+                    </span>
+
+                    <div class="info-value">
+                        {{ $item->pekerjaan->lokasi ?? '-' }}
                     </div>
 
+                </div>
 
-                    <div style="display:flex; gap:.6rem; align-items:center;">
+                <div>
 
-                        <a
-                            href="{{ route('pekerjaan.show', $item->pekerjaan->id_pekerjaan) }}"
-                            class="btn-detail"
-                        >
-                            Lihat Detail
-                        </a>
+                    <span class="info-label">
+                        Tanggal Melamar
+                    </span>
 
+                    <div class="info-value">
+                        {{ \Carbon\Carbon::parse($item->tanggal_submit)->locale('id')->translatedFormat('d F Y, H:i') }}
+                    </div>
 
-                        @if($item->status_lamaran === 'menunggu')
+                </div>
 
-                            <form
-                                action="{{ route('pencari.lamaran.batal', $item->id_lamaran) }}"
-                                method="POST"
-                                style="margin:0;"
-                                onsubmit="return confirm('Yakin ingin membatalkan lamaran ini?');"
-                            >
-                                @csrf
-                                @method('DELETE')
+                <div>
 
-                                <button
-                                    type="submit"
-                                    class="btn-cancel"
-                                >
-                                    Batalkan
-                                </button>
+                    <span class="info-label">
+                        Keahlian
+                    </span>
 
-                            </form>
-
-                        @endif
-
+                    <div class="info-value">
+                        {{ $item->pekerjaan->keahlian->nama_keahlian ?? '-' }}
                     </div>
 
                 </div>
 
             </div>
 
-        @endforeach
+            @if(
+                in_array(
+                    $item->status_lamaran,
+                    ['diterima', 'selesai'],
+                    true
+                )
+            )
 
-    </div>
+                @php
+                    $pemberi = $item->pekerjaan->pemberiKerja ?? null;
+                @endphp
+
+                @if($pemberi)
+
+                    <div class="employer-contact">
+
+                        <div class="employer-contact-title">
+                            INFORMASI PEMBERI KERJA
+                        </div>
+
+                        <div class="employer-contact-name">
+                            {{ $pemberi->nama }}
+                        </div>
+
+                        <div class="employer-contact-info">
+
+                            @if($pemberi->alamat)
+                                <div>
+                                    <strong>Alamat:</strong>
+                                    {{ $pemberi->alamat }}
+                                </div>
+                            @endif
+
+                            @if($pemberi->no_telpon)
+                                <div>
+                                    <strong>No. Telepon:</strong>
+                                    {{ $pemberi->no_telpon }}
+                                </div>
+                            @endif
+
+                            @if($pemberi->email)
+                                <div>
+                                    <strong>Email:</strong>
+                                    {{ $pemberi->email }}
+                                </div>
+                            @endif
+
+                        </div>
+
+                    </div>
+
+                @endif
+
+            @endif
+
+            <div class="application-footer">
+
+                <div style="color:var(--color-ink-soft); font-size:.8rem;">
+
+                    Diajukan
+                    {{ \Carbon\Carbon::parse($item->tanggal_submit)->locale('id')->diffForHumans() }}
+
+                </div>
+
+                <div style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+
+                    <a
+                        href="{{ route('pekerjaan.show', $item->pekerjaan->id_pekerjaan) }}"
+                        class="btn-detail"
+                    >
+                        Lihat Detail
+                    </a>
+
+                    @if(
+                        $item->status_lamaran === 'diterima'
+                        && $item->pekerjaan->status_pekerjaan === 'sedang_dikerjakan'
+                    )
+
+                        <a
+                            href="{{ route('pencari.bukti.create', $item->id_lamaran) }}"
+                            class="btn-proof"
+                        >
+                            📤 Upload Bukti Kerja
+                        </a>
+
+                    @endif
+
+                    @if($item->status_lamaran === 'selesai')
+
+                        <a
+                            href="{{ route('pencari.rating.form', $item->id_lamaran) }}"
+                            class="btn-rating"
+                        >
+                            ⭐ Beri Rating Pemberi Kerja
+                        </a>
+
+                    @endif
+
+                    @if($item->status_lamaran === 'menunggu')
+
+                        <form
+                            action="{{ route('pencari.lamaran.batal', $item->id_lamaran) }}"
+                            method="POST"
+                            style="margin:0;"
+                            onsubmit="return confirm('Yakin ingin membatalkan lamaran ini?');"
+                        >
+
+                            @csrf
+
+                            @method('DELETE')
+
+                            <button
+                                type="submit"
+                                class="btn-cancel"
+                            >
+                                Batalkan
+                            </button>
+
+                        </form>
+
+                    @endif
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endforeach
+
+</div>
+```
 
 @else
 
-    <div class="empty-card">
+```
+<div class="empty-card">
 
-        <div class="empty-icon">
-            📄
-        </div>
-
-        <div class="empty-title">
-            Belum ada lamaran
-        </div>
-
-        <div class="empty-text">
-            Kamu belum mengirim lamaran ke pekerjaan apa pun.
-        </div>
-
-        <a
-            href="{{ route('pencari.cari-pekerjaan') }}"
-            class="btn-search"
-        >
-            Cari Lowongan
-        </a>
-
+    <div class="empty-icon">
+        📄
     </div>
+
+    <div class="empty-title">
+        Belum ada lamaran
+    </div>
+
+    <div class="empty-text">
+        Kamu belum mengirim lamaran ke pekerjaan apa pun.
+    </div>
+
+    <a
+        href="{{ route('pencari.cari-pekerjaan') }}"
+        class="btn-search"
+    >
+        Cari Lowongan
+    </a>
+
+</div>
+```
 
 @endif
 

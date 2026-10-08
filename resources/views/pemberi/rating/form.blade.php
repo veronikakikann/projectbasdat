@@ -1,6 +1,6 @@
-@extends('pencari.layout')
+@extends('pemberi.layout')
 
-@section('title', 'Beri Rating Pemberi Kerja')
+@section('title', 'Beri Rating')
 
 @section('content')
 
@@ -57,7 +57,7 @@
         margin-bottom: 0.3rem;
     }
 
-    .summary-employer {
+    .summary-worker {
         color: var(--color-ink-soft);
         font-size: 0.85rem;
     }
@@ -94,6 +94,7 @@
         color: #EF4444;
     }
 
+    .form-select,
     .form-input {
         width: 100%;
         box-sizing: border-box;
@@ -104,8 +105,10 @@
         border-radius: 8px;
         font-family: inherit;
         font-size: 0.9rem;
+        transition: 0.2s;
     }
 
+    .form-select:focus,
     .form-input:focus {
         outline: none;
         border-color: var(--color-primary);
@@ -116,6 +119,7 @@
         margin-top: 0.45rem;
         color: var(--color-ink-soft);
         font-size: 0.78rem;
+        line-height: 1.5;
     }
 
     .rating-options {
@@ -161,6 +165,7 @@
 
     .rating-star {
         font-size: 1.3rem;
+        line-height: 1;
     }
 
     .rating-number {
@@ -172,6 +177,7 @@
     .form-actions {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         gap: 0.7rem;
         margin-top: 1.5rem;
         padding-top: 1.25rem;
@@ -190,6 +196,10 @@
         text-decoration: none;
         font-size: 0.85rem;
         font-weight: 700;
+    }
+
+    .btn-back:hover {
+        background: #F8FAFC;
     }
 
     .btn-submit {
@@ -212,8 +222,18 @@
     }
 
     @media (max-width: 600px) {
+        .rating-options {
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.4rem;
+        }
+
+        .rating-option label {
+            min-height: 65px;
+        }
+
         .form-actions {
             flex-direction: column-reverse;
+            align-items: stretch;
         }
 
         .btn-back,
@@ -225,143 +245,154 @@
 
 <div class="page-header">
 
-    <h1 class="page-title">
-        Beri Rating Pemberi Kerja
-    </h1>
+```
+<h1 class="page-title">
+    Beri Rating
+</h1>
 
-    <p class="page-desc">
-        Berikan penilaian setelah pekerjaan selesai.
-    </p>
+<p class="page-desc">
+    Berikan penilaian untuk pekerja setelah pekerjaan selesai.
+</p>
+```
 
 </div>
 
 @if($errors->any())
 
-    <div class="alert-error">
+```
+<div class="alert-error">
 
-        <strong>Terdapat kesalahan:</strong>
+    <strong>Terdapat kesalahan:</strong>
 
-        <ul class="error-list">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+    <ul class="error-list">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
 
-    </div>
+</div>
+```
 
 @endif
 
 <div class="form-card">
 
-    <div class="job-summary">
+```
+<div class="job-summary">
 
-        <div class="summary-label">
-            Pekerjaan Selesai
+    <div class="summary-label">
+        Transaksi Selesai
+    </div>
+
+    <div class="summary-job">
+        {{ $lamaran->pekerjaan->nama_pekerjaan ?? 'Pekerjaan' }}
+    </div>
+
+    <div class="summary-worker">
+        Pekerja:
+        {{ $lamaran->pencariKerja->nama ?? 'Pekerja' }}
+    </div>
+
+</div>
+
+<form
+    action="{{ route('pemberi.rating.store', $lamaran->id_lamaran) }}"
+    method="POST"
+>
+
+    @csrf
+
+    <div class="form-group">
+
+        <label class="form-label">
+            Penilaian <span class="required">*</span>
+        </label>
+
+        <div class="rating-options">
+
+            @for($i = 1; $i <= 5; $i++)
+
+                <div class="rating-option">
+
+                    <input
+                        type="radio"
+                        id="skor-{{ $i }}"
+                        name="skor"
+                        value="{{ $i }}"
+                        {{ (string) old('skor', $rating->skor ?? '') === (string) $i ? 'checked' : '' }}
+                        required
+                    >
+
+                    <label for="skor-{{ $i }}">
+
+                        <span class="rating-star">
+                            ⭐
+                        </span>
+
+                        <span class="rating-number">
+                            {{ $i }} / 5
+                        </span>
+
+                    </label>
+
+                </div>
+
+            @endfor
+
         </div>
 
-        <div class="summary-job">
-            {{ $lamaran->pekerjaan->nama_pekerjaan ?? 'Pekerjaan' }}
-        </div>
-
-        <div class="summary-employer">
-            Pemberi Kerja:
-            {{ $lamaran->pekerjaan->pemberiKerja->nama ?? 'Pemberi Kerja' }}
+        <div class="form-help">
+            Pilih nilai 1 sampai 5 sesuai dengan hasil pekerjaan.
         </div>
 
     </div>
 
-    <form
-        action="{{ route('pencari.rating.store', $lamaran->id_lamaran) }}"
-        method="POST"
-    >
+    <div class="form-group">
 
-        @csrf
+        <label
+            for="kategori_komentar"
+            class="form-label"
+        >
+            Komentar
+        </label>
 
-        <div class="form-group">
+        <input
+            type="text"
+            id="kategori_komentar"
+            name="kategori_komentar"
+            class="form-input"
+            maxlength="100"
+            value="{{ old('kategori_komentar', $rating->kategori_komentar ?? '') }}"
+            placeholder="Contoh: Pekerjaan rapi dan selesai tepat waktu"
+        >
 
-            <label class="form-label">
-                Penilaian <span class="required">*</span>
-            </label>
-
-            <div class="rating-options">
-
-                @for($i = 1; $i <= 5; $i++)
-
-                    <div class="rating-option">
-
-                        <input
-                            type="radio"
-                            id="skor-{{ $i }}"
-                            name="skor"
-                            value="{{ $i }}"
-                            {{ (string) old('skor', $rating->skor ?? '') === (string) $i ? 'checked' : '' }}
-                            required
-                        >
-
-                        <label for="skor-{{ $i }}">
-                            <span class="rating-star">⭐</span>
-                            <span class="rating-number">
-                                {{ $i }} / 5
-                            </span>
-                        </label>
-
-                    </div>
-
-                @endfor
-
-            </div>
-
-            <div class="form-help">
-                Pilih nilai 1 sampai 5.
-            </div>
-
+        <div class="form-help">
+            Maksimal 100 karakter.
         </div>
 
-        <div class="form-group">
+    </div>
 
-            <label
-                for="kategori_komentar"
-                class="form-label"
-            >
-                Komentar
-            </label>
+    <div class="form-actions">
 
-            <input
-                type="text"
-                id="kategori_komentar"
-                name="kategori_komentar"
-                class="form-input"
-                maxlength="100"
-                value="{{ old('kategori_komentar', $rating->kategori_komentar ?? '') }}"
-                placeholder="Contoh: Pemberi kerja ramah dan komunikatif"
-            >
+        <a
+            href="{{ route('pemberi.pekerjaan.show', $lamaran->id_pekerjaan) }}"
+            class="btn-back"
+        >
+            Kembali
+        </a>
 
-            <div class="form-help">
-                Maksimal 100 karakter.
-            </div>
+        <button
+            type="submit"
+            class="btn-submit"
+            onclick="return confirm('Yakin ingin menyimpan rating ini?')"
+        >
+            ⭐ Simpan Rating
+        </button>
 
-        </div>
+    </div>
 
-        <div class="form-actions">
-
-            <a
-                href="{{ route('pencari.lamaran-saya') }}"
-                class="btn-back"
-            >
-                Kembali
-            </a>
-
-            <button
-                type="submit"
-                class="btn-submit"
-                onclick="return confirm('Yakin ingin menyimpan rating ini?')"
-            >
-                ⭐ Simpan Rating
-            </button>
-
-        </div>
-
-    </form>
+</form>
+```
 
 </div>
 
