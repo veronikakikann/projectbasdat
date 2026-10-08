@@ -309,7 +309,6 @@
 
 <div class="page-header">
 
-```
 <h1 class="page-title">
     Lamaran Saya
 </h1>
@@ -317,7 +316,6 @@
 <p class="page-desc">
     Lihat seluruh lamaran pekerjaan yang pernah kamu kirim.
 </p>
-```
 
 </div>
 
@@ -331,7 +329,7 @@
 
 @if($lamaran->isNotEmpty())
 
-```
+
 <div class="application-list">
 
     @foreach($lamaran as $item)
@@ -560,11 +558,9 @@
     @endforeach
 
 </div>
-```
 
 @else
 
-```
 <div class="empty-card">
 
     <div class="empty-icon">
@@ -587,7 +583,6 @@
     </a>
 
 </div>
-```
 
 @endif
 
