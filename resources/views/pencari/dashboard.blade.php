@@ -1,13 +1,14 @@
-@extends('pemberi.layout')
+@extends('pencari.layout')
 
 @section('title', 'Beranda')
 
 @section('content')
+<!-- KODE CSS DI BAWAH INI 100% SAMA PLEK DENGAN PEMBERI KERJA -->
 <style>
     .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start; }
     
-    /* Welcome Banner */
-    .welcome-banner { background: linear-gradient(135deg, #FF8C6B 0%, #FF6B4A 100%); border-radius: 12px; padding: 2.5rem 2rem; color: white; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(255, 107, 74, 0.2); }
+    /* Welcome Banner - Ukuran sama persis, hanya warna gradasi yang diganti ke Biru */
+    .welcome-banner { background: linear-gradient(135deg, #55B4EA 0%, #3D91C7 100%); border-radius: 12px; padding: 2.5rem 2rem; color: white; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(85, 180, 234, 0.2); }
     .welcome-title { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
     .welcome-desc { font-size: 1rem; opacity: 0.9; line-height: 1.5; margin-bottom: 1.5rem; max-width: 80%; }
     
@@ -36,7 +37,9 @@
     .item-icon { width: 40px; height: 40px; border-radius: 50%; background: #E0F2FE; color: var(--color-primary-dark); font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem; text-transform: uppercase; }
     .item-title { font-weight: 700; color: var(--color-ink); font-size: 0.95rem; margin-bottom: 0.2rem; }
     .item-desc { font-size: 0.8rem; color: var(--color-ink-soft); }
-    .badge-menunggu { background: #FEF3C7; color: #B45309; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; margin-left: 6px; }
+    
+    /* Badge dimodifikasi warnanya agar netral untuk status lamaran */
+    .badge-status { background: #E2E8F0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; margin-left: 6px; text-transform: capitalize; }
 </style>
 
 <div class="dashboard-layout">
@@ -44,39 +47,23 @@
     <!-- Sisi Kiri (Utama) -->
     <div>
         <div class="welcome-banner">
-            <h1 class="welcome-title">Hai, {{ session('user_name', 'Pemberi Kerja') }}!</h1>
-            <p class="welcome-desc">
-                @if($pelamarMenunggu > 0)
-                    Ada <strong>{{ $pelamarMenunggu }} pelamar baru</strong> yang menunggu untuk ditinjau hari ini. Mari kita mulai proses seleksinya.
-                @else
-                    Belum ada pelamar baru yang menunggu tinjauan hari ini. Anda bisa membuat lowongan baru untuk menarik lebih banyak pekerja.
-                @endif
-            </p>
-            <a href="{{ route('pemberi.pekerjaan.create') }}" class="btn-yellow">Buat Lowongan Baru</a>
+            <h1 class="welcome-title">Hai, {{ $pencari->nama ?? session('user_name', 'Pekerja') }}!</h1>
+            <p class="welcome-desc">Siap untuk mencari cuan hari ini? Temukan berbagai lowongan pekerjaan yang cocok dengan keahlianmu dan mulai bekerja.</p>
+            <a href="#" class="btn-yellow">Cari Lowongan Sekarang</a>
         </div>
 
         <div class="section-header">
-            <h2 class="section-title">Ringkasan Lowongan</h2>
-            <a href="{{ route('pemberi.pekerjaan.index') }}" class="section-link">Lihat semua lowongan</a>
+            <h2 class="section-title">Ringkasan Peluang</h2>
         </div>
         
         <div class="stats-grid">
             <div class="stat-card">
-                <!-- Memanggil array perStatus dengan fallback '0' jika kosong -->
-                <div class="stat-num">{{ $perStatus['tersedia'] ?? 0 }}</div>
-                <div class="stat-label">Lowongan Aktif</div>
+                <div class="stat-num">{{ $jumlahPekerjaanTersedia }}</div>
+                <div class="stat-label">Lowongan Tersedia</div>
             </div>
             <div class="stat-card">
-                <div class="stat-num">{{ $totalPelamar }}</div>
-                <div class="stat-label">Total Pelamar</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" style="color: #D97706;">{{ $pelamarMenunggu }}</div>
-                <div class="stat-label">Menunggu Tinjauan</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" style="color: #059669;">{{ $perStatus['selesai'] ?? 0 }}</div>
-                <div class="stat-label">Pekerjaan Selesai</div>
+                <div class="stat-num">0</div>
+                <div class="stat-label">Total Lamaran Terkirim</div>
             </div>
         </div>
     </div>
@@ -85,30 +72,28 @@
     <div>
         <div class="side-card">
             <div class="section-header" style="margin-bottom: 1.5rem;">
-                <h2 class="section-title" style="font-size: 1.1rem;">Lowongan Terbaru</h2>
-                <a href="{{ route('pemberi.pekerjaan.index') }}" class="section-link">Semua</a>
+                <h2 class="section-title" style="font-size: 1.1rem;">Lamaran Terakhir</h2>
+                <a href="#" class="section-link">Semua</a>
             </div>
             
             <div class="side-list">
-                @forelse($terbaru as $job)
-                    <a href="{{ route('pemberi.pekerjaan.show', $job->id_pekerjaan) }}" class="list-item">
-                        <div class="item-icon">{{ substr($job->nama_pekerjaan, 0, 1) }}</div>
+                @if($lamaranTerakhir)
+                    <a href="#" class="list-item">
+                        <div class="item-icon">{{ substr($lamaranTerakhir->pekerjaan->nama_pekerjaan ?? 'P', 0, 1) }}</div>
                         <div>
-                            <div class="item-title">{{ $job->nama_pekerjaan }}</div>
+                            <div class="item-title">{{ $lamaranTerakhir->pekerjaan->nama_pekerjaan ?? 'Pekerjaan' }}</div>
                             <div class="item-desc">
-                                {{ $job->lamaran_count }} Pelamar 
-                                @if($job->menunggu_count > 0)
-                                    <span class="badge-menunggu">{{ $job->menunggu_count }} Menunggu</span>
-                                @endif
+                                {{ \Carbon\Carbon::parse($lamaranTerakhir->tanggal_submit)->locale('id')->diffForHumans() }}
+                                <span class="badge-status">{{ str_replace('_', ' ', $lamaranTerakhir->status_lamaran) }}</span>
                             </div>
                         </div>
                     </a>
-                @empty
+                @else
                     <div style="text-align: center; padding: 2rem 0; color: var(--color-ink-soft);">
                         <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.5" fill="none" style="margin-bottom: 0.5rem; opacity: 0.5;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <div style="font-size: 0.9rem;">Belum ada lowongan.</div>
+                        <div style="font-size: 0.9rem;">Belum ada lamaran.</div>
                     </div>
-                @endforelse
+                @endif
             </div>
         </div>
     </div>

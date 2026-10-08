@@ -42,7 +42,14 @@ class ProfilController extends Controller
                 Rule::unique('pemberi_kerja', 'email'),
                 Rule::unique('admin', 'email'),
             ],
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => [
+                'nullable', 
+                'string', 
+                'min:8',             // Minimal 8 karakter
+                'regex:/[a-zA-Z]/',  // Harus mengandung huruf
+                'regex:/[0-9]/',     // Harus mengandung angka
+                'confirmed'          // Harus cocok dengan kolom konfirmasi
+            ],
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);

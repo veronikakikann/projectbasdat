@@ -35,7 +35,7 @@ class DashboardController extends Controller
             ->first();
 
         return view(
-            'dashboard.pencari',
+            'pencari.dashboard',
             compact(
                 'pencari',
                 'jumlahPekerjaanTersedia',

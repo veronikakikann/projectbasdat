@@ -50,7 +50,14 @@ class ProfilController extends Controller
                 Rule::unique('admin', 'email'),
             ],
             'foto_profil' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => [
+                'nullable', 
+                'string', 
+                'min:8',             // Minimal 8 karakter
+                'regex:/[a-zA-Z]/',  // Harus mengandung huruf
+                'regex:/[0-9]/',     // Harus mengandung angka
+                'confirmed'          // Harus cocok dengan kolom konfirmasi
+            ],
         ]);
 
         $newPhoto = null;
