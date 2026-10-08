@@ -4,6 +4,11 @@
 
 @section('content')
 
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
 <style>
     .form-card {
         background: white;
@@ -57,12 +62,13 @@
         color: var(--color-ink);
         transition: 0.2s;
         background: white;
+        box-sizing: border-box;
     }
 
     .form-control:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(255, 138, 91, 0.1);
+        box-shadow: 0 0 0 3px rgba(85, 180, 234, 0.1);
     }
 
     .form-control[readonly] {
@@ -114,6 +120,22 @@
         line-height: 1.5;
     }
 
+    .location-map {
+        width: 100%;
+        height: 350px;
+        border-radius: 8px;
+        border: 1px solid var(--color-border);
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .map-helper {
+        font-size: 0.8rem;
+        color: var(--color-ink-soft);
+        margin-top: 0.5rem;
+        line-height: 1.5;
+    }
+
     .btn-submit {
         background-color: var(--color-primary);
         color: white;
@@ -150,6 +172,7 @@
     }
 
     @media (max-width: 700px) {
+
         .form-row {
             grid-template-columns: 1fr;
             gap: 0;
@@ -163,159 +186,49 @@
 
 <div class="form-card">
 
-    <h2 class="page-title">
-        Edit Informasi Profil
-    </h2>
+```
+<h2 class="page-title">
+    Edit Informasi Profil
+</h2>
 
-    <p class="page-desc">
-        Perbarui data dirimu agar informasi profil tetap sesuai.
-        Latitude dan longitude juga digunakan untuk pencocokan
-        lokasi lowongan pekerjaan.
-    </p>
+<p class="page-desc">
+    Perbarui data dirimu agar informasi profil tetap sesuai.
+    Lokasi tempat tinggal dipilih melalui peta dan digunakan
+    untuk pencocokan lowongan berdasarkan jarak.
+</p>
 
-    <form
-        action="{{ route('pencari.profil.update') }}"
-        method="POST"
-    >
-        @csrf
-        @method('PUT')
+<form
+    action="{{ route('pencari.profil.update') }}"
+    method="POST"
+>
 
-
-        <!-- DATA UTAMA -->
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label
-                    for="nama"
-                    class="form-label"
-                >
-                    Nama Lengkap
-                </label>
-
-                <input
-                    type="text"
-                    id="nama"
-                    name="nama"
-                    class="form-control @error('nama') is-invalid @enderror"
-                    value="{{ old('nama', $pencari->nama) }}"
-                    required
-                >
-
-                @error('nama')
-                    <div class="invalid-feedback">
-                        ⚠️ {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
+    @csrf
+    @method('PUT')
 
 
-            <div class="form-group">
+    <!-- DATA UTAMA -->
 
-                <label
-                    for="no_telpon"
-                    class="form-label"
-                >
-                    Nomor Telepon
-                </label>
-
-                <input
-                    type="text"
-                    id="no_telpon"
-                    name="no_telpon"
-                    class="form-control @error('no_telpon') is-invalid @enderror"
-                    value="{{ old('no_telpon', $pencari->no_telpon) }}"
-                    required
-                >
-
-                @error('no_telpon')
-                    <div class="invalid-feedback">
-                        ⚠️ {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
-
-        </div>
-
-
-        <!-- EMAIL -->
+    <div class="form-row">
 
         <div class="form-group">
 
             <label
-                for="email"
+                for="nama"
                 class="form-label"
             >
-                Alamat Email
-            </label>
-
-            <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-control @error('email') is-invalid @enderror"
-                value="{{ old('email', $pencari->email) }}"
-                required
-            >
-
-            @error('email')
-                <div class="invalid-feedback">
-                    ⚠️ {{ $message }}
-                </div>
-            @enderror
-
-        </div>
-
-
-        <!-- NIK -->
-
-        <div class="form-group">
-
-            <label
-                for="nik"
-                class="form-label"
-            >
-                NIK KTP
+                Nama Lengkap
             </label>
 
             <input
                 type="text"
-                id="nik"
-                class="form-control"
-                value="{{ $pencari->nik }}"
-                readonly
-            >
-
-            <div class="form-help">
-                NIK tidak dapat diubah melalui halaman profil.
-            </div>
-
-        </div>
-
-
-        <!-- ALAMAT -->
-
-        <div class="form-group">
-
-            <label
-                for="alamat"
-                class="form-label"
-            >
-                Alamat Lengkap
-            </label>
-
-            <textarea
-                id="alamat"
-                name="alamat"
-                class="form-control @error('alamat') is-invalid @enderror"
-                style="min-height: 100px;"
+                id="nama"
+                name="nama"
+                class="form-control @error('nama') is-invalid @enderror"
+                value="{{ old('nama', $pencari->nama) }}"
                 required
-            >{{ old('alamat', $pencari->alamat) }}</textarea>
+            >
 
-            @error('alamat')
+            @error('nama')
                 <div class="invalid-feedback">
                     ⚠️ {{ $message }}
                 </div>
@@ -324,165 +237,347 @@
         </div>
 
 
-        <!-- LOKASI -->
+        <div class="form-group">
 
-        <hr class="section-divider">
-
-        <h3 class="section-heading">
-            Lokasi
-        </h3>
-
-        <p class="section-desc">
-            Masukkan koordinat lokasi tempat tinggalmu.
-            Data ini digunakan sistem untuk mencocokkan lowongan
-            berdasarkan jarak.
-        </p>
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label
-                    for="latitude"
-                    class="form-label"
-                >
-                    Latitude
-                </label>
-
-                <input
-                    type="number"
-                    id="latitude"
-                    name="latitude"
-                    step="any"
-                    class="form-control @error('latitude') is-invalid @enderror"
-                    value="{{ old('latitude', $pencari->latitude) }}"
-                    placeholder="Contoh: -7.257472"
-                >
-
-                @error('latitude')
-                    <div class="invalid-feedback">
-                        ⚠️ {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label
-                    for="longitude"
-                    class="form-label"
-                >
-                    Longitude
-                </label>
-
-                <input
-                    type="number"
-                    id="longitude"
-                    name="longitude"
-                    step="any"
-                    class="form-control @error('longitude') is-invalid @enderror"
-                    value="{{ old('longitude', $pencari->longitude) }}"
-                    placeholder="Contoh: 112.752090"
-                >
-
-                @error('longitude')
-                    <div class="invalid-feedback">
-                        ⚠️ {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
-
-        </div>
-
-
-        <!-- PASSWORD -->
-
-        <hr class="section-divider">
-
-        <h3 class="section-heading">
-            Ubah Password
-        </h3>
-
-        <p class="section-desc">
-            Biarkan kedua kolom di bawah ini kosong jika tidak ingin
-            mengubah password akun.
-        </p>
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label
-                    for="password"
-                    class="form-label"
-                >
-                    Password Baru
-                </label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control @error('password') is-invalid @enderror"
-                    placeholder="Min. 8 karakter (huruf & angka)"
-                >
-
-                @error('password')
-                    <div class="invalid-feedback">
-                        ⚠️ {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label
-                    for="password_confirmation"
-                    class="form-label"
-                >
-                    Konfirmasi Password Baru
-                </label>
-
-                <input
-                    type="password"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    class="form-control"
-                    placeholder="Ketik ulang password baru"
-                >
-
-            </div>
-
-        </div>
-
-
-        <!-- BUTTON -->
-
-        <div class="button-row">
-
-            <button
-                type="submit"
-                class="btn-submit"
+            <label
+                for="no_telpon"
+                class="form-label"
             >
-                Simpan Perubahan
-            </button>
+                Nomor Telepon
+            </label>
 
-            <a
-                href="{{ route('pencari.profil') }}"
-                class="btn-submit btn-cancel"
+            <input
+                type="text"
+                id="no_telpon"
+                name="no_telpon"
+                class="form-control @error('no_telpon') is-invalid @enderror"
+                value="{{ old('no_telpon', $pencari->no_telpon) }}"
+                required
             >
-                Batal
-            </a>
+
+            @error('no_telpon')
+                <div class="invalid-feedback">
+                    ⚠️ {{ $message }}
+                </div>
+            @enderror
 
         </div>
 
-    </form>
+    </div>
+
+
+    <!-- EMAIL -->
+
+    <div class="form-group">
+
+        <label
+            for="email"
+            class="form-label"
+        >
+            Alamat Email
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control @error('email') is-invalid @enderror"
+            value="{{ old('email', $pencari->email) }}"
+            required
+        >
+
+        @error('email')
+            <div class="invalid-feedback">
+                ⚠️ {{ $message }}
+            </div>
+        @enderror
+
+    </div>
+
+
+    <!-- NIK -->
+
+    <div class="form-group">
+
+        <label
+            for="nik"
+            class="form-label"
+        >
+            NIK KTP
+        </label>
+
+        <input
+            type="text"
+            id="nik"
+            class="form-control"
+            value="{{ $pencari->nik }}"
+            readonly
+        >
+
+        <div class="form-help">
+            NIK tidak dapat diubah melalui halaman profil.
+        </div>
+
+    </div>
+
+
+    <!-- ALAMAT -->
+
+    <div class="form-group">
+
+        <label
+            for="alamat"
+            class="form-label"
+        >
+            Alamat Lengkap
+        </label>
+
+        <textarea
+            id="alamat"
+            name="alamat"
+            class="form-control @error('alamat') is-invalid @enderror"
+            style="min-height: 100px;"
+            required
+        >{{ old('alamat', $pencari->alamat) }}</textarea>
+
+        @error('alamat')
+            <div class="invalid-feedback">
+                ⚠️ {{ $message }}
+            </div>
+        @enderror
+
+    </div>
+
+
+    <!-- LOKASI -->
+
+    <hr class="section-divider">
+
+    <h3 class="section-heading">
+        Lokasi Tempat Tinggal
+    </h3>
+
+    <p class="section-desc">
+        Pilih lokasi tempat tinggalmu pada peta.
+        Geser pin atau klik langsung pada peta untuk menentukan
+        titik lokasi. Latitude dan longitude akan tersimpan
+        otomatis dan tidak perlu diisi manual.
+    </p>
+
+    <div class="form-group">
+
+        <div
+            id="profile-map"
+            class="location-map"
+        ></div>
+
+        <div class="map-helper">
+            Geser pin atau klik pada peta untuk memperbarui lokasi.
+        </div>
+
+        <input
+            type="hidden"
+            name="latitude"
+            id="latitude"
+            value="{{ old('latitude', $pencari->latitude ?? '-7.2674') }}"
+        >
+
+        <input
+            type="hidden"
+            name="longitude"
+            id="longitude"
+            value="{{ old('longitude', $pencari->longitude ?? '112.7725') }}"
+        >
+
+        @error('latitude')
+            <div class="invalid-feedback">
+                ⚠️ {{ $message }}
+            </div>
+        @enderror
+
+        @error('longitude')
+            <div class="invalid-feedback">
+                ⚠️ {{ $message }}
+            </div>
+        @enderror
+
+    </div>
+
+
+    <!-- PASSWORD -->
+
+    <hr class="section-divider">
+
+    <h3 class="section-heading">
+        Ubah Password
+    </h3>
+
+    <p class="section-desc">
+        Biarkan kedua kolom di bawah ini kosong jika tidak ingin
+        mengubah password akun.
+    </p>
+
+    <div class="form-row">
+
+        <div class="form-group">
+
+            <label
+                for="password"
+                class="form-label"
+            >
+                Password Baru
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control @error('password') is-invalid @enderror"
+                placeholder="Min. 8 karakter (huruf & angka)"
+            >
+
+            @error('password')
+                <div class="invalid-feedback">
+                    ⚠️ {{ $message }}
+                </div>
+            @enderror
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label
+                for="password_confirmation"
+                class="form-label"
+            >
+                Konfirmasi Password Baru
+            </label>
+
+            <input
+                type="password"
+                id="password_confirmation"
+                name="password_confirmation"
+                class="form-control"
+                placeholder="Ketik ulang password baru"
+            >
+
+        </div>
+
+    </div>
+
+
+    <!-- BUTTON -->
+
+    <div class="button-row">
+
+        <button
+            type="submit"
+            class="btn-submit"
+        >
+            Simpan Perubahan
+        </button>
+
+        <a
+            href="{{ route('pencari.profil') }}"
+            class="btn-submit btn-cancel"
+        >
+            Batal
+        </a>
+
+    </div>
+
+</form>
+```
 
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const latitudeInput =
+            document.getElementById('latitude');
+
+        const longitudeInput =
+            document.getElementById('longitude');
+
+        const defaultLat = -7.2674;
+        const defaultLng = 112.7725;
+
+        const initialLat =
+            parseFloat(latitudeInput.value) || defaultLat;
+
+        const initialLng =
+            parseFloat(longitudeInput.value) || defaultLng;
+
+
+        const map =
+            L.map('profile-map')
+                .setView(
+                    [initialLat, initialLng],
+                    14
+                );
+
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }
+        ).addTo(map);
+
+
+        const marker =
+            L.marker(
+                [initialLat, initialLng],
+                {
+                    draggable: true
+                }
+            ).addTo(map);
+
+
+        function updateCoordinates() {
+
+            const position =
+                marker.getLatLng();
+
+            latitudeInput.value =
+                position.lat;
+
+            longitudeInput.value =
+                position.lng;
+        }
+
+
+        marker.on(
+            'dragend',
+            updateCoordinates
+        );
+
+
+        map.on(
+            'click',
+            function (event) {
+
+                marker.setLatLng(
+                    event.latlng
+                );
+
+                updateCoordinates();
+            }
+        );
+
+
+        /*
+         * Pastikan koordinat tetap mengikuti posisi pin
+         * ketika halaman pertama kali dimuat.
+         */
+        updateCoordinates();
+
+    });
+</script>
 
 @endsection

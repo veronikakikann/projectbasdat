@@ -36,11 +36,23 @@ class ProfilController extends Controller
 
         $data = $request->validate(
             [
-                'nama' => 'required|string|max:100',
+                'nama' => [
+                    'required',
+                    'string',
+                    'max:100',
+                ],
 
-                'alamat' => 'required|string|max:500',
+                'alamat' => [
+                    'required',
+                    'string',
+                    'max:500',
+                ],
 
-                'no_telpon' => 'required|string|max:15',
+                'no_telpon' => [
+                    'required',
+                    'string',
+                    'max:15',
+                ],
 
                 'email' => [
                     'required',
@@ -66,6 +78,21 @@ class ProfilController extends Controller
                     ),
                 ],
 
+                /*
+                 * Koordinat dikirim otomatis dari map.
+                 */
+                'latitude' => [
+                    'required',
+                    'numeric',
+                    'between:-90,90',
+                ],
+
+                'longitude' => [
+                    'required',
+                    'numeric',
+                    'between:-180,180',
+                ],
+
                 'password' => [
                     'nullable',
                     'string',
@@ -74,20 +101,26 @@ class ProfilController extends Controller
                     'regex:/[0-9]/',
                     'confirmed',
                 ],
-
-                'latitude' => [
-                    'nullable',
-                    'numeric',
-                    'between:-90,90',
-                ],
-
-                'longitude' => [
-                    'nullable',
-                    'numeric',
-                    'between:-180,180',
-                ],
             ],
             [
+                'latitude.required' =>
+                    'Pilih titik lokasi pada peta.',
+
+                'latitude.numeric' =>
+                    'Koordinat latitude tidak valid.',
+
+                'latitude.between' =>
+                    'Koordinat latitude tidak valid.',
+
+                'longitude.required' =>
+                    'Pilih titik lokasi pada peta.',
+
+                'longitude.numeric' =>
+                    'Koordinat longitude tidak valid.',
+
+                'longitude.between' =>
+                    'Koordinat longitude tidak valid.',
+
                 'password.min' =>
                     'Password minimal 8 karakter.',
 
@@ -99,33 +132,36 @@ class ProfilController extends Controller
             ]
         );
 
-        $pencari->nama = $data['nama'];
+        $pencari->nama =
+            $data['nama'];
 
-        $pencari->alamat = $data['alamat'];
+        $pencari->alamat =
+            $data['alamat'];
 
-        $pencari->no_telpon = $data['no_telpon'];
+        $pencari->no_telpon =
+            $data['no_telpon'];
 
-        $pencari->email = $data['email'];
+        $pencari->email =
+            $data['email'];
 
         $pencari->latitude =
-            $data['latitude'] ?? null;
+            $data['latitude'];
 
         $pencari->longitude =
-            $data['longitude'] ?? null;
+            $data['longitude'];
 
-        if (!empty($data['password'])) {
-            $pencari->password = Hash::make(
-                $data['password']
-            );
+        if (! empty($data['password'])) {
+            $pencari->password =
+                Hash::make(
+                    $data['password']
+                );
         }
 
-        // NIK, status verifikasi, dan status akun
-        // tidak dapat diubah melalui halaman profil.
         $pencari->save();
 
-        // Perbarui nama pada session.
         session([
-            'user_name' => $pencari->nama,
+            'user_name' =>
+                $pencari->nama,
         ]);
 
         return redirect()
