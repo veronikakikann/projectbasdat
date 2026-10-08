@@ -131,7 +131,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="/" class="navbar__brand">Teman <span>Kerja</span></a>
+        <a href="/" class="navbar__brand">Teman<span>Kerja</span></a>
         <div class="navbar__menu">
             <a href="/" class="{{ request()->is('/') ? 'is-active' : '' }}">Beranda</a>
             <a href="/about" class="{{ request()->is('about') ? 'is-active' : '' }}">Tentang Kami</a>

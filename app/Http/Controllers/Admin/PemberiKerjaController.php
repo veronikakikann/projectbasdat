@@ -16,16 +16,27 @@ use Illuminate\Validation\Rule;
 
 class PemberiKerjaController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $pemberiKerja = PemberiKerja::with('admin')->orderBy('nama')->get();
+        $status = $request->query('status');
+        $status = in_array($status, ['menunggu', 'terverifikasi', 'ditolak'], true) ? $status : null;
 
-        return view('pemberi_kerja.index', compact('pemberiKerja'));
+        $accounts = PemberiKerja::with('admin')
+            ->when($status, fn ($q) => $q->where('status_verifikasi', $status))
+            ->orderByRaw("CASE status_verifikasi WHEN 'menunggu' THEN 0 ELSE 1 END")
+            ->orderBy('nama')
+            ->get();
+
+        return view('admin.accounts.index', [
+            'type' => 'pemberi_kerja',
+            'accounts' => $accounts,
+            'status' => $status,
+        ]);
     }
 
     public function create(): View
     {
-        return view('pemberi_kerja.create');
+        return view('admin.accounts.form', ['type' => 'pemberi_kerja']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -40,12 +51,13 @@ class PemberiKerjaController extends Controller
 
     public function edit(PemberiKerja $pemberi_kerja): View
     {
-        return view('pemberi_kerja.edit', ['pemberiKerja' => $pemberi_kerja]);
+        return view('admin.accounts.form', ['type' => 'pemberi_kerja', 'account' => $pemberi_kerja]);
     }
 
     public function update(Request $request, PemberiKerja $pemberi_kerja): RedirectResponse
     {
         $data = $request->validate($this->rules($pemberi_kerja));
+        $statusLama = $pemberi_kerja->status_verifikasi;
         unset($data['nik']);
         if (! empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -54,6 +66,7 @@ class PemberiKerjaController extends Controller
         }
         $data['id_admin'] = $data['status_verifikasi'] === 'menunggu' ? null : session('user_id');
         $pemberi_kerja->update($data);
+        $this->kirimNotifikasiVerifikasi($pemberi_kerja, $statusLama, $data['status_verifikasi']);
 
         return redirect()->route('pemberi_kerja.index')->with('success', 'Akun berhasil diperbarui.');
     }
@@ -80,6 +93,24 @@ class PemberiKerjaController extends Controller
         }
 
         return redirect()->route('pemberi_kerja.index')->with('success', 'Akun berhasil dihapus.');
+    }
+
+    // Beri tahu pengguna kalau status verifikasinya berubah.
+    private function kirimNotifikasiVerifikasi(PemberiKerja $account, string $statusLama, string $statusBaru): void
+    {
+        if ($statusLama === $statusBaru) {
+            return;
+        }
+
+        $pesan = match ($statusBaru) {
+            'terverifikasi' => 'Akun kamu sudah diverifikasi oleh admin. Selamat bergabung di Teman Kerja!',
+            'ditolak' => 'Verifikasi akun kamu ditolak oleh admin. Pastikan data dan foto KTP kamu jelas dan sesuai.',
+            default => null,
+        };
+
+        if ($pesan) {
+            Notifikasi::kirim((int) $account->getKey(), 'pemberi_kerja', $pesan);
+        }
     }
 
     private function rules(?PemberiKerja $account = null): array
