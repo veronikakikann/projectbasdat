@@ -321,12 +321,7 @@
                     melakukan registrasi.
                 </p>
 
-                <a
-                    href="#"
-                    class="btn"
-                >
-                    Verifikasi
-                </a>
+                <a href="{{ route('pencari_kerja.index') }}" class="btn">Verifikasi</a>
 
             </div>
 
@@ -345,12 +340,7 @@
                     melakukan registrasi.
                 </p>
 
-                <a
-                    href="#"
-                    class="btn"
-                >
-                    Verifikasi
-                </a>
+                <a href="{{ route('pemberi_kerja.index') }}" class="btn">Verifikasi</a>
 
             </div>
 
@@ -369,12 +359,7 @@
                     oleh pencari kerja.
                 </p>
 
-                <a
-                    href="#"
-                    class="btn"
-                >
-                    Verifikasi
-                </a>
+                <a href="{{ route('keahlian_pencari_kerja.index') }}" class="btn">Verifikasi</a>
 
             </div>
 
