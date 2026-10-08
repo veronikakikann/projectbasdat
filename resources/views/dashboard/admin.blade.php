@@ -90,6 +90,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- Sisi Kanan -->
     <div>
         <div class="side-card">
@@ -132,6 +133,100 @@
                     </div>
                 @endif
             </div>
+=======
+
+    {{-- ISI DASHBOARD --}}
+
+    <div class="container">
+
+        <h2>Menu Admin</h2>
+
+
+        <div class="menu">
+
+
+            {{-- 1. VERIFIKASI PENCARI --}}
+
+            <div class="card">
+
+                <h3>
+                    Verifikasi Pencari Kerja
+                </h3>
+
+                <p>
+                    Memeriksa dan memverifikasi
+                    data pencari kerja yang
+                    melakukan registrasi.
+                </p>
+
+                <a href="{{ route('pencari_kerja.index') }}" class="btn">Verifikasi</a>
+
+            </div>
+
+
+            {{-- 2. VERIFIKASI PEMBERI --}}
+
+            <div class="card">
+
+                <h3>
+                    Verifikasi Pemberi Kerja
+                </h3>
+
+                <p>
+                    Memeriksa dan memverifikasi
+                    data pemberi kerja yang
+                    melakukan registrasi.
+                </p>
+
+                <a href="{{ route('pemberi_kerja.index') }}" class="btn">Verifikasi</a>
+
+            </div>
+
+
+            {{-- 3. VERIFIKASI KEAHLIAN --}}
+
+            <div class="card">
+
+                <h3>
+                    Verifikasi Keahlian
+                </h3>
+
+                <p>
+                    Memeriksa dan memverifikasi
+                    keahlian yang diajukan
+                    oleh pencari kerja.
+                </p>
+
+                <a href="{{ route('keahlian_pencari_kerja.index') }}" class="btn">Verifikasi</a>
+
+            </div>
+
+
+            {{-- 4. KELOLA AKUN --}}
+
+            <div class="card">
+
+                <h3>
+                    Kelola Akun
+                </h3>
+
+                <p>
+                    Mengelola status akun
+                    pencari kerja dan
+                    pemberi kerja.
+                </p>
+
+                <a
+                    href="#"
+                    class="btn"
+                >
+                    Kelola Akun
+                </a>
+
+            </div>
+
+
+>>>>>>> d645792e339e551143d96b5239c8b5a09c802856
         </div>
 
         <div class="side-card" style="margin-top: 1.5rem;">
