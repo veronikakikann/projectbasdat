@@ -80,8 +80,9 @@
                             <div class="status-text">
                                 <strong>Pekerjaan Telah Diselesaikan</strong>
                                 Pekerja ini telah mengunggah bukti hasil kerjanya. Anda dapat melanjutkan ke proses pembayaran.
-                                @if($bukti->catatan_kerja)
-                                    <div style="margin-top: 8px; padding: 8px; background: white; border-radius: 4px; font-style: italic; border: 1px dashed #CBD5E0;">"{{ $bukti->catatan_kerja }}"</div>
+                                <p><a href="{{ route('dokumen.bukti', [$bukti, 'kerja']) }}" target="_blank" rel="noopener">Lihat Bukti Kerja</a></p>
+                                @if($bukti->catatan)
+                                    <p>{{ $bukti->catatan }}</p>
                                 @endif
                             </div>
                         </div>
@@ -106,6 +107,12 @@
                             <div class="status-text">
                                 <strong>Pembayaran Selesai</strong>
                                 Transaksi dengan pekerja ini telah lunas dan selesai. Anda sudah dapat memberikan rating dan ulasan.
+                                @if($bukti?->foto_bukti_bayar)
+                                    <p><a href="{{ route('dokumen.bukti', [$bukti, 'bayar']) }}" target="_blank" rel="noopener">Lihat Bukti Pembayaran</a></p>
+                                @endif
+                                @if($bukti?->catatan_bayar)
+                                    <p>{{ $bukti->catatan_bayar }}</p>
+                                @endif
                             </div>
                         </div>
                     @elseif(!$sudahKerja)

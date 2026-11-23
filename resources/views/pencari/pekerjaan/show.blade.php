@@ -430,7 +430,7 @@ $bisaUploadBukti =
         <div class="card employer-contact">
 
             <div class="employer-contact-title">
-                Kontak Pemberi Kerja
+                Chat Pemberi Kerja
             </div>
 
             <div class="employer-contact-name">
@@ -439,37 +439,10 @@ $bisaUploadBukti =
 
             <div class="employer-contact-list">
 
-                @if($pekerjaan->pemberiKerja->email)
-
-                    <div class="employer-contact-item">
-
-                        <div class="employer-contact-label">
-                            Email
-                        </div>
-
-                        <div class="employer-contact-value">
-                            {{ $pekerjaan->pemberiKerja->email }}
-                        </div>
-
-                    </div>
-
-                @endif
-
-                @if($pekerjaan->pemberiKerja->no_telpon)
-
-                    <div class="employer-contact-item">
-
-                        <div class="employer-contact-label">
-                            No. Telepon
-                        </div>
-
-                        <div class="employer-contact-value">
-                            {{ $pekerjaan->pemberiKerja->no_telpon }}
-                        </div>
-
-                    </div>
-
-                @endif
+                <div>
+                    <a href="{{ route('lamaran.chat.show', $lamaranSaya) }}" class="btn-primary">Buka Chat</a>
+                </div>
+                @include('partials.bukti-links', ['bukti' => $lamaranSaya->buktiPenyelesaian])
 
                 @if($pekerjaan->pemberiKerja->alamat)
 

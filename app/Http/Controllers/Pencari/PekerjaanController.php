@@ -194,6 +194,7 @@ class PekerjaanController extends Controller
          */
         $lamaranSaya = $pekerjaan
             ->lamaran()
+            ->with('buktiPenyelesaian')
             ->where(
                 'id_pencari',
                 session('user_id')

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PencariKerjaController as AdminPencariKerjaContro
 use App\Http\Controllers\Admin\TransaksiController;
 use App\Http\Controllers\Admin\VerifikasiKeahlianController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\LamaranChatController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Pemberi\BuktiController as PemberiBuktiController;
 use App\Http\Controllers\Pemberi\DashboardController as PemberiDashboardController;
@@ -400,6 +401,15 @@ Route::middleware('role:pencari_kerja')
         )->name('pencari.notifikasi');
     });
 
+
+Route::middleware('role:pemberi_kerja,pencari_kerja')
+    ->prefix('lamaran/{lamaran:id_lamaran}/chat')
+    ->name('lamaran.chat.')
+    ->group(function (): void {
+        Route::get('/', [LamaranChatController::class, 'show'])->name('show');
+        Route::get('/pesan', [LamaranChatController::class, 'pesan'])->name('pesan');
+        Route::post('/', [LamaranChatController::class, 'store'])->name('store');
+    });
 
 /*
 |--------------------------------------------------------------------------

@@ -302,6 +302,7 @@
                     <tr>
                         <th>Nama Pekerja</th>
                         <th>Status Lamaran</th>
+                        <th>Chat</th>
                         <th>Bukti Penyelesaian</th>
                         <th>Rating Anda</th>
                     </tr>
@@ -313,9 +314,10 @@
                         <td>
                             <span style="background: #E2E8F0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">{{ $pkrj->status_lamaran }}</span>
                         </td>
+                        <td><a href="{{ route('lamaran.chat.show', $pkrj) }}">Buka Chat</a></td>
                         <td>
-                            @if($pkrj->buktiPenyelesaian && $pkrj->buktiPenyelesaian->foto_bukti_kerja)
-                                <span style="color: #2F855A; font-weight: 600;">✅ Ada Bukti</span>
+                            @if($pkrj->buktiPenyelesaian?->foto_bukti_kerja || $pkrj->buktiPenyelesaian?->foto_bukti_bayar)
+                                @include('partials.bukti-links', ['bukti' => $pkrj->buktiPenyelesaian])
                             @else
                                 <span style="color: var(--color-ink-soft);">Belum ada bukti</span>
                             @endif

@@ -389,7 +389,7 @@
                                 </div>
 
 
-                                {{-- KONTAK HANYA TERBUKA SETELAH DITERIMA --}}
+                                {{-- CHAT TERBUKA SETELAH DITERIMA --}}
                                 @if(
                                     in_array(
                                         $l->status_lamaran,
@@ -403,25 +403,12 @@
                                         <div class="applicant-contact">
 
                                             <div class="applicant-contact-title">
-                                                Kontak Pelamar
+                                                Chat Pelamar
                                             </div>
 
                                             <div class="applicant-contact-info">
 
-                                                @if($l->pencariKerja->email)
-                                                    <div>
-                                                        <strong>Email:</strong>
-                                                        {{ $l->pencariKerja->email }}
-                                                    </div>
-                                                @endif
-
-                                                @if($l->pencariKerja->no_telpon)
-                                                    <div>
-                                                        <strong>No. Telepon:</strong>
-                                                        {{ $l->pencariKerja->no_telpon }}
-                                                    </div>
-                                                @endif
-
+                                                <a href="{{ route('lamaran.chat.show', $l) }}">Buka Chat</a>
                                                 @if($l->pencariKerja->alamat)
                                                     <div>
                                                         <strong>Alamat:</strong>

@@ -444,7 +444,7 @@
                     <div class="employer-contact">
 
                         <div class="employer-contact-title">
-                            INFORMASI PEMBERI KERJA
+                            CHAT PEMBERI KERJA
                         </div>
 
                         <div class="employer-contact-name">
@@ -460,19 +460,8 @@
                                 </div>
                             @endif
 
-                            @if($pemberi->no_telpon)
-                                <div>
-                                    <strong>No. Telepon:</strong>
-                                    {{ $pemberi->no_telpon }}
-                                </div>
-                            @endif
-
-                            @if($pemberi->email)
-                                <div>
-                                    <strong>Email:</strong>
-                                    {{ $pemberi->email }}
-                                </div>
-                            @endif
+                            <a href="{{ route('lamaran.chat.show', $item) }}" class="btn-detail">Buka Chat</a>
+                            @include('partials.bukti-links', ['bukti' => $item->buktiPenyelesaian])
 
                         </div>
 
