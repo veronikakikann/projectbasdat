@@ -140,6 +140,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ asset('js/map-search.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const initialLat = parseFloat(document.getElementById('latitude').value);
@@ -161,6 +162,9 @@
             document.getElementById('latitude').value = position.lat;
             document.getElementById('longitude').value = position.lng;
         });
+
+        // Ketik alamat di kolom "lokasi" -> peta otomatis menuju titiknya
+        MapSearch.attach({ map: map, marker: marker, addressField: '[name="lokasi"]' });
     });
 </script>
 @endsection

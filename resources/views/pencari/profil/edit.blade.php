@@ -493,6 +493,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ asset('js/map-search.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -576,6 +577,9 @@
          * ketika halaman pertama kali dimuat.
          */
         updateCoordinates();
+
+        // Ketik alamat -> peta otomatis menuju titiknya
+        MapSearch.attach({ map: map, marker: marker, addressField: '#alamat' });
 
     });
 </script>

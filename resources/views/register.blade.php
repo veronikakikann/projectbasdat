@@ -582,6 +582,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ asset('js/map-search.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -666,6 +667,11 @@
         );
 
 
+        // Ketik alamat -> peta otomatis menuju titiknya (hanya relevan untuk pencari kerja)
+        const searchApi =
+            MapSearch.attach({ map: map, marker: marker, addressField: '#alamat' });
+
+
         function updateLocationVisibility() {
 
             if (
@@ -676,6 +682,8 @@
                 locationSection.style.display =
                     'block';
 
+                if (searchApi) { searchApi.box.style.display = ''; }
+
                 setTimeout(function () {
                     map.invalidateSize();
                 }, 100);
@@ -684,6 +692,8 @@
 
                 locationSection.style.display =
                     'none';
+
+                if (searchApi) { searchApi.box.style.display = 'none'; }
             }
         }
 
